@@ -1,0 +1,42 @@
+.ui-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  color: var(--text-muted);
+}
+
+.ui-loading__spinner {
+  display: inline-block;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: var(--radius-full);
+  animation: ui-spin 0.75s linear infinite;
+}
+
+.ui-loading__spinner--sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 2px;
+}
+
+.ui-loading__spinner--md {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.ui-loading__label {
+  font-size: var(--font-sm);
+}
+
+@keyframes ui-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-loading__spinner {
+    animation-duration: 2s;
+  }
+}

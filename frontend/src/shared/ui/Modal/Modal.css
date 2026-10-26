@@ -1,0 +1,59 @@
+.ui-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(15 23 42 / 45%);
+}
+
+.ui-modal {
+  width: min(100%, 34rem);
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.ui-modal__header,
+.ui-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+}
+
+.ui-modal__header {
+  border-bottom: 1px solid var(--border);
+}
+
+.ui-modal__title {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-family);
+  font-size: var(--font-lg);
+}
+
+.ui-modal__body {
+  padding: var(--space-6);
+}
+
+.ui-modal__footer {
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 480px) {
+  .ui-modal__body {
+    padding: var(--space-4);
+  }
+
+  .ui-modal__header,
+  .ui-modal__footer {
+    padding: var(--space-3) var(--space-4);
+  }
+}
