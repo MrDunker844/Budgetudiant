@@ -1,30 +1,45 @@
 import { useEffect, useState } from "react";
 import { getHealth } from "./services/api";
+import HomePage from "./features/homepage/HomePage.jsx";
 import "./App.css";
 
 function App() {
-  const [status, setStatus] = useState(null);
-  const [error, setError] = useState(null);
+  const [apiStatus, setApiStatus] = useState(null);
+  const [apiError, setApiError] = useState(null);
 
-  // Au chargement : on vérifie que l'API (et MySQL) répondent
   useEffect(() => {
     getHealth()
-      .then(setStatus)
-      .catch((err) => setError(err.message));
+      .then(setApiStatus)
+      .catch((error) => setApiError(error.message));
   }, []);
 
+  function handleLogin() {
+    window.location.href = "/login";
+  }
+
+  function handleDashboard() {
+    window.location.href = "/dashboard";
+  }
+
   return (
-    <main style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>Budget Étudiant</h1>
-      {error && <p style={{ color: "red" }}>API injoignable : {error}</p>}
-      {status && (
-        <ul>
-          <li>API : {status.api}</li>
-          <li>Base de données : {status.database}</li>
-        </ul>
+    <>
+      <HomePage
+        onLogin={handleLogin}
+        onDashboard={handleDashboard}
+      />
+
+      {apiError && (
+        <p className="api-status api-status--error" role="status">
+          API indisponible : {apiError}
+        </p>
       )}
-      {!status && !error && <p>Connexion à l'API…</p>}
-    </main>
+
+      {apiStatus && (
+        <p className="api-status" role="status">
+          API : {apiStatus.api} — Base de données : {apiStatus.database}
+        </p>
+      )}
+    </>
   );
 }
 
