@@ -1,0 +1,46 @@
+# Base MySQL + API FastAPI, identiques pour toute l'équipe
+# Lancement : docker compose --env-file backend/.env up -d --build
+services:
+  db:
+    image: mysql:8.4
+    container_name: budget-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      # Le script SQL est exécuté automatiquement au premier lancement
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      # Les données sont conservées entre deux redémarrages
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      # La base est "prête" quand elle répond en TCP
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: ./backend
+    container_name: budget-api
+    restart: unless-stopped
+    env_file: backend/.env
+    environment:
+      # Dans Docker, l'API joint MySQL par le nom du service "db"
+      DB_HOST: db
+      DB_PORT: 3306
+      # Rechargement auto du code quand on modifie un fichier (utile sous Windows)
+      WATCHFILES_FORCE_POLLING: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      # Le code local est monté dans le conteneur : pas besoin de rebuild à chaque modif
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
