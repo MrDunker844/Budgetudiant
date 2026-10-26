@@ -1,0 +1,102 @@
+/* Base */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-md);
+  color: var(--text);
+  background: var(--background);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Titres */
+h1,
+h2,
+h3 {
+  margin-top: 0;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: var(--font-title);
+}
+
+h2 {
+  font-size: var(--font-xl);
+}
+
+h3 {
+  font-size: var(--font-lg);
+}
+
+/* Liens */
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+/* Formulaires */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  padding: var(--space-3);
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Conteneurs */
+.page {
+  width: 100%;
+  padding: var(--page-padding);
+}
+
+.card {
+  padding: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  :root {
+    --page-padding: 1rem;
+    --sidebar-width: 0rem;
+  }
+
+  h1 {
+    font-size: var(--font-xl);
+  }
+}
