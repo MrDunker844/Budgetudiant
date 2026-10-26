@@ -22,11 +22,14 @@ app.add_middleware(
 
 @app.get("/api/health")
 def health():
-    """Vérifie que l'API tourne et que MySQL répond."""
+    """Vérifie que l'API tourne, que MySQL répond et que les tables existent."""
     try:
         conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM transactions")
+        nb_transactions = cursor.fetchone()[0]
+        cursor.close()
         conn.close()
-        db = "ok"
+        return {"api": "ok", "database": "ok", "transactions": nb_transactions}
     except Exception as e:
-        db = f"erreur : {e}"
-    return {"api": "ok", "database": db}
+        return {"api": "ok", "database": f"erreur : {e}"}
