@@ -27,7 +27,11 @@ Prérequis : [Docker Desktop](https://www.docker.com/products/docker-desktop/) i
 copy backend\.env.example backend\.env      # Windows
 cp backend/.env.example backend/.env        # Mac / Linux
 
-# 2. Lancer MySQL + l'API
+# 2. Générer un secret unique avec `openssl rand -hex 32`, puis renseigner
+#    la valeur obtenue dans AUTH_SECRET dans backend/.env
+openssl rand -hex 32
+
+# 3. Lancer MySQL + l'API
 docker compose --env-file backend/.env up -d --build
 ```
 
