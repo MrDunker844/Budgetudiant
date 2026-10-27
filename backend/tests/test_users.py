@@ -7,10 +7,9 @@ def db_user(us_id=1, **changes):
 
 # ---------- GET ----------
 def test_list_users(client, fake_db):
-    fake_db.responses = [[db_user(1), db_user(2, us_email="bob@example.com")]]
     response = client.get("/api/users/")
     assert response.status_code == 200
-    assert len(response.json()) == 2
+    assert response.json() == [db_user(1)]
 
 
 def test_get_user(client, fake_db):
@@ -22,6 +21,11 @@ def test_get_user(client, fake_db):
 
 def test_get_user_introuvable(client, fake_db):
     assert client.get("/api/users/999").status_code == 404
+
+
+def test_get_another_user_is_not_allowed(client, fake_db):
+    assert client.get("/api/users/2").status_code == 404
+    assert fake_db.queries == []
 
 
 # ---------- POST ----------
