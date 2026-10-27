@@ -73,7 +73,8 @@ jobs:
           data = json.load(sys.stdin)
           print(data)
           assert data['database'] == 'ok', 'La base ne répond pas'
-          assert data['transactions'] > 0, 'Aucune donnée de test'
+          assert data['expenses'] > 0, 'Aucune dépense de test'
+          assert data['incomes'] > 0, 'Aucun revenu de test'
           "
 
       - name: Afficher les logs de l'API en cas d'échec

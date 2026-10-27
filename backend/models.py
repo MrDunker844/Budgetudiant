@@ -1,26 +1,59 @@
-from datetime import date
-from typing import Literal, Optional
+from datetime import date, datetime
+from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field
+
+
+# ---------- Utilisateurs ----------
+class UserIn(BaseModel):
+    """Données envoyées pour créer / modifier un utilisateur."""
+    us_name: str = Field(min_length=1, max_length=100)
+    us_email: EmailStr
+
+
+class User(UserIn):
+    """Utilisateur renvoyé par l'API."""
+    us_id: int
+    us_created_at: datetime
 
 
 # ---------- Catégories ----------
 class CategoryIn(BaseModel):
-    name: str
+    cat_name: str = Field(min_length=1, max_length=50)
+    cat_color: str = Field(default="#888888", pattern=r"^#[0-9A-Fa-f]{6}$")
+    cat_description: Optional[str] = Field(default=None, max_length=255)
 
 
 class Category(CategoryIn):
-    id: int
+    cat_id: int
+    cat_created_at: datetime
 
 
-# ---------- Transactions ----------
-class TransactionIn(BaseModel):
-    amount: float
-    type: Literal["revenu", "depense"]
-    date: date
-    description: Optional[str] = None
-    category_id: Optional[int] = None
+# ---------- Dépenses ----------
+class ExpenseIn(BaseModel):
+    user_id: int
+    categorie_id: Optional[int] = None
+    ex_title: str = Field(min_length=1, max_length=100)
+    ex_amount: float = Field(gt=0)
+    ex_date: date
+    ex_description: Optional[str] = Field(default=None, max_length=255)
 
 
-class Transaction(TransactionIn):
-    id: int
+class Expense(ExpenseIn):
+    ex_id: int
+    ex_created_at: datetime
+
+
+# ---------- Revenus ----------
+class IncomeIn(BaseModel):
+    user_id: int
+    categorie_id: Optional[int] = None
+    inc_title: str = Field(min_length=1, max_length=100)
+    inc_amount: float = Field(gt=0)
+    inc_date: date
+    inc_description: Optional[str] = Field(default=None, max_length=255)
+
+
+class Income(IncomeIn):
+    inc_id: int
+    inc_created_at: datetime
