@@ -2,12 +2,14 @@
   /* Couleurs */
   --primary: #0b9b61;
   --primary-hover: #087f50;
+  --primary-light: #e7f6ef;
   --background: #f6f8fc;
   --surface: #ffffff;
   --text: #172033;
   --text-muted: #64748b;
   --border: #e2e8f0;
   --success: #16a34a;
+  --warning: #d97706;
   --danger: #dc2626;
 
   /* Typographie */
@@ -17,6 +19,9 @@
   --font-lg: 1.25rem;
   --font-xl: 1.5rem;
   --font-title: 1.875rem;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
 
   /* Espacements */
   --space-1: 0.25rem;
@@ -25,6 +30,8 @@
   --space-4: 1rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
 
   /* Bordures et ombres */
   --radius-sm: 0.375rem;
@@ -38,4 +45,5 @@
   --sidebar-width: 15rem;
   --topbar-height: 4.5rem;
   --page-padding: 2rem;
+  --content-max-width: 90rem;
 }
