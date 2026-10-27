@@ -12,15 +12,64 @@ backend/
 ├── main.py            # crée l'app FastAPI, configure CORS, inclut les routers, route /api/health
 ├── database.py        # get_connection() : connexion MySQL avec les infos du .env
 ├── models.py          # schémas Pydantic (validation des données reçues / renvoyées)
-├── routers/           # un fichier par ressource : transactions.py, categories.py…
+├── routers/           # un fichier par ressource : users.py, categories.py, expenses.py, incomes.py
 ├── requirements.txt   # dépendances Python
 ├── Dockerfile         # image Docker de l'API
 ├── .env.example       # modèle d'identifiants (à copier en .env)
 └── .env               # VOS identifiants — jamais commité
 ```
 
-Base de données : `budget_etudiant`, tables `categories (id, name)` et
-`transactions (id, amount, type, date, description, category_id)`. Script : `database/schema.sql`.
+Base de données : `budget_etudiant` (script : `database/schema.sql`). Chaque colonne est préfixée par sa table (`us_`, `cat_`, `ex_`, `inc_`), sauf les clés étrangères `user_id` et `categorie_id`.
+
+```mermaid
+erDiagram
+    users ||--o{ expenses : "dépense"
+    users ||--o{ incomes : "gagne"
+    categories |o--o{ expenses : "classe"
+    categories |o--o{ incomes : "classe"
+    users {
+        INT us_id PK
+        VARCHAR us_name
+        VARCHAR us_email "UNIQUE"
+        DATETIME us_created_at
+    }
+    categories {
+        INT cat_id PK
+        VARCHAR cat_name "UNIQUE"
+        CHAR cat_color "#RRGGBB"
+        VARCHAR cat_description
+        DATETIME cat_created_at
+    }
+    expenses {
+        INT ex_id PK
+        INT user_id FK
+        INT categorie_id FK "nullable"
+        VARCHAR ex_title
+        DECIMAL ex_amount "> 0"
+        DATE ex_date
+        VARCHAR ex_description
+        DATETIME ex_created_at
+    }
+    incomes {
+        INT inc_id PK
+        INT user_id FK
+        INT categorie_id FK "nullable"
+        VARCHAR inc_title
+        DECIMAL inc_amount "> 0"
+        DATE inc_date
+        VARCHAR inc_description
+        DATETIME inc_created_at
+    }
+```
+
+| Relation | Règle |
+|---|---|
+| `expenses.user_id` / `incomes.user_id` → `users.us_id` | Obligatoire. Supprimer un utilisateur supprime ses dépenses et revenus (`ON DELETE CASCADE`) |
+| `expenses.categorie_id` / `incomes.categorie_id` → `categories.cat_id` | Facultatif. Supprimer une catégorie laisse les lignes sans catégorie (`ON DELETE SET NULL`) |
+
+Les catégories sont communes aux dépenses et aux revenus (ex. *Logement* pour une dépense, *Bourse* pour un revenu).
+
+Les colonnes `*_created_at` sont remplies automatiquement par MySQL (`DEFAULT CURRENT_TIMESTAMP`) : ne pas les envoyer dans les `INSERT`.
 
 ---
 
@@ -81,8 +130,11 @@ router = APIRouter(prefix="/api/categories", tags=["Catégories"])
 @router.get("/", response_model=list[Category])
 def list_categories():
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)   # renvoie des dict {"id": 1, "name": ...}
-    cursor.execute("SELECT id, name FROM categories ORDER BY name")
+    cursor = conn.cursor(dictionary=True)   # renvoie des dict {"cat_id": 1, "cat_name": ...}
+    cursor.execute(
+        "SELECT cat_id, cat_name, cat_color, cat_description, cat_created_at "
+        "FROM categories ORDER BY cat_name"
+    )
     rows = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -92,20 +144,25 @@ def list_categories():
 @router.post("/", response_model=Category, status_code=201)
 def create_category(category: CategoryIn):
     conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO categories (name) VALUES (%s)", (category.name,))
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        "INSERT INTO categories (cat_name, cat_color, cat_description) VALUES (%s, %s, %s)",
+        (category.cat_name, category.cat_color, category.cat_description),
+    )
     conn.commit()                           # obligatoire pour INSERT / UPDATE / DELETE
-    new_id = cursor.lastrowid
+    # On relit la ligne pour renvoyer aussi cat_id et cat_created_at
+    cursor.execute("SELECT * FROM categories WHERE cat_id = %s", (cursor.lastrowid,))
+    row = cursor.fetchone()
     cursor.close()
     conn.close()
-    return {"id": new_id, "name": category.name}
+    return row
 
 
-@router.delete("/{category_id}", status_code=204)
-def delete_category(category_id: int):
+@router.delete("/{cat_id}", status_code=204)
+def delete_category(cat_id: int):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM categories WHERE id = %s", (category_id,))
+    cursor.execute("DELETE FROM categories WHERE cat_id = %s", (cat_id,))
     conn.commit()
     deleted = cursor.rowcount
     cursor.close()
@@ -114,7 +171,27 @@ def delete_category(category_id: int):
         raise HTTPException(status_code=404, detail="Catégorie introuvable")
 ```
 
-Puis l'inclure dans `main.py` :
+Pour les dépenses, on récupère souvent le nom et la couleur de la catégorie avec une jointure :
+
+```sql
+SELECT e.*, c.cat_name, c.cat_color
+FROM expenses e
+LEFT JOIN categories c ON c.cat_id = e.categorie_id
+WHERE e.user_id = %s
+ORDER BY e.ex_date DESC
+```
+
+Pour le tableau de bord, le solde d'un utilisateur = total des revenus − total des dépenses :
+
+```sql
+SELECT
+  (SELECT COALESCE(SUM(inc_amount), 0) FROM incomes  WHERE user_id = %s) AS total_revenus,
+  (SELECT COALESCE(SUM(ex_amount),  0) FROM expenses WHERE user_id = %s) AS total_depenses
+```
+
+Ajouter `AND MONTH(ex_date) = MONTH(CURDATE()) AND YEAR(ex_date) = YEAR(CURDATE())` (idem avec `inc_date`) pour ne garder que le mois en cours.
+
+Puis inclure le router dans `main.py` :
 
 ```python
 from routers import categories
@@ -143,7 +220,7 @@ app.include_router(categories.router)
 docker exec -it budget-mysql mysql -uroot -p budget_etudiant
 ```
 ```sql
-SELECT * FROM transactions;
+SELECT * FROM expenses;
 ```
 
 Avant chaque Pull Request : tester **toutes** les routes modifiées dans `/docs`.
@@ -183,7 +260,7 @@ Astuce : un `print(...)` dans une route apparaît dans ces logs.
 
 ## 7. Git côté back
 
-- Une branche par fonctionnalité : `feature/crud-transactions`, `feature/crud-categories`…
-- Commits courts en français à l'impératif : `Ajoute la route POST /api/transactions`
+- Une branche par fonctionnalité : `feature/crud-expenses`, `feature/crud-categories`…
+- Commits courts en français à l'impératif : `Ajoute la route POST /api/expenses`
 - Si vous modifiez la structure de la base : mettre à jour `database/schema.sql` **et** `models.py` dans la même PR, et prévenir l'équipe (chacun doit réinitialiser sa base).
 - Jamais commiter : `.env`, `venv/`, `__pycache__/` (déjà dans le `.gitignore`).
