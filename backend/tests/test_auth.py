@@ -7,6 +7,7 @@ USER = {
     "us_id": 1,
     "us_name": "Alice Martin",
     "us_email": "alice@example.com",
+    "us_monthly_budget": None,
     "us_created_at": "2026-10-27T10:00:00",
 }
 REGISTERED_USER = {**USER, "us_id": 42}
