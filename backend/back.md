@@ -2,6 +2,7 @@
 
 API **FastAPI** (Python) connectée à **MySQL**. Ce fichier résume ce qu'il faut savoir pour développer et déboguer le back.
 L'installation complète (Docker, XAMPP) est dans le [README](../README.md).
+La référence de toutes les routes (champs, exemples, erreurs) est dans [API.md](API.md).
 
 ---
 
@@ -13,6 +14,8 @@ backend/
 ├── database.py        # get_connection() : connexion MySQL avec les infos du .env
 ├── models.py          # schémas Pydantic (validation des données reçues / renvoyées)
 ├── routers/           # un fichier par ressource : users.py, categories.py, expenses.py, incomes.py
+├── tests/             # tests pytest (fausse base, pas besoin de MySQL)
+├── API.md             # documentation de toutes les routes
 ├── requirements.txt   # dépendances Python
 ├── Dockerfile         # image Docker de l'API
 ├── .env.example       # modèle d'identifiants (à copier en .env)
