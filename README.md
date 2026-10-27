@@ -114,6 +114,35 @@ uvicorn main:app --reload       # → http://localhost:8000
 
 > Ne pas lancer les deux en même temps : le port 8000 serait déjà pris.
 
+### Routes disponibles
+
+| Ressource | Routes | Remarques |
+|---|---|---|
+| Santé | `GET /api/health` | Vérifie l'API et MySQL |
+| Utilisateurs | `GET /api/users/` · `GET /api/users/{id}` · `POST /api/users/` · `PUT /api/users/{id}` · `DELETE /api/users/{id}` | E-mail unique (`409` sinon). ⚠️ Supprimer un utilisateur supprime ses dépenses et revenus |
+| Tableau de bord | `GET /api/users/{id}/summary` | Total revenus, total dépenses, solde, dépenses par catégorie. Filtre facultatif `?month=2026-10` |
+| Dépenses | `GET /api/expenses/` · `GET /api/expenses/{id}` · `POST /api/expenses/` · `PUT /api/expenses/{id}` · `DELETE /api/expenses/{id}` | Filtres facultatifs sur la liste : `?user_id=1&month=2026-10` |
+| Revenus | `GET /api/incomes/` · `GET /api/incomes/{id}` · `POST /api/incomes/` · `PUT /api/incomes/{id}` · `DELETE /api/incomes/{id}` | Mêmes filtres que les dépenses |
+
+Codes de réponse : `201` création, `204` suppression, `404` id introuvable, `400` `user_id` ou `categorie_id` inexistant, `422` données invalides (montant ≤ 0, titre vide, e-mail mal formé, mois au mauvais format…).
+
+### Tests automatiques
+
+Les tests (`backend/tests/`) utilisent `pytest` et une fausse base de données : **pas besoin de MySQL ni de Docker** pour les lancer.
+
+```bash
+cd backend
+venv\Scripts\activate           # Windows  (Mac/Linux : source venv/bin/activate)
+pip install -r requirement.txt
+pytest                          # ou pytest -v pour voir le détail de chaque test
+```
+
+Dans Docker (après un `up -d --build` pour installer `pytest` dans l'image) :
+
+```bash
+docker compose exec api pytest
+```
+
 ---
 
 ## Commandes Docker utiles
@@ -139,7 +168,7 @@ Le fichier `.github/workflows/ci.yml` lance automatiquement des vérifications *
 
 | Job | Ce qu'il vérifie |
 |---|---|
-| **Backend** | Installe les dépendances, vérifie la syntaxe Python, démarre un vrai MySQL, importe `database/schema.sql`, lance l'API et appelle `/api/health` (doit renvoyer `database: ok`, des dépenses et des revenus) |
+| **Backend** | Installe les dépendances, vérifie la syntaxe Python, lance les tests `pytest`, démarre un vrai MySQL, importe `database/schema.sql`, lance l'API et appelle `/api/health` (doit renvoyer `database: ok`, des dépenses et des revenus) |
 | **Frontend** | `npm ci`, `npm run lint` (oxlint), `npm run build` (Vite) |
 | **Docker** | Vérifie `docker-compose.yml` et construit l'image de l'API |
 
