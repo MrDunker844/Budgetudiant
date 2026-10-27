@@ -57,3 +57,16 @@ class IncomeIn(BaseModel):
 class Income(IncomeIn):
     inc_id: int
     inc_created_at: datetime
+
+
+# ---------- Résumé du budget d'un utilisateur ----------
+class CategoryTotal(BaseModel):
+    category: Optional[str]  # None = dépenses sans catégorie
+    total: float
+
+
+class Summary(BaseModel):
+    total_revenus: float
+    total_depenses: float
+    solde: float
+    depenses_par_categorie: list[CategoryTotal]

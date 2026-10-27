@@ -223,7 +223,9 @@ docker exec -it budget-mysql mysql -uroot -p budget_etudiant
 SELECT * FROM expenses;
 ```
 
-Avant chaque Pull Request : tester **toutes** les routes modifiées dans `/docs`.
+Avant chaque Pull Request : tester **toutes** les routes modifiées dans `/docs`, et lancer `pytest` (aussi lancé par la CI).
+
+Tests automatiques (`backend/tests/`) : `conftest.py` remplace MySQL par une fausse base (`FakeDB`). Dans chaque test, `fake_db.responses` donne à l'avance le résultat de chaque requête SQL, dans l'ordre. Les dépenses et les revenus sont testés ensemble dans `test_money.py`, car ils partagent le même code (`routers/common.py`).
 
 ---
 

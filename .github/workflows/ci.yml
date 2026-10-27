@@ -53,6 +53,11 @@ jobs:
       - name: Vérifier la syntaxe Python
         run: python -m compileall -q backend
 
+      # Tests automatiques : utilisent une fausse base, pas besoin de MySQL
+      - name: Lancer les tests (pytest)
+        working-directory: backend
+        run: pytest -v
+
       - name: Importer le script SQL
         run: mysql -h 127.0.0.1 -uroot -p"$DB_PASSWORD" < database/schema.sql
 

@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_connection
+from routers import expenses, incomes, users
 
 app = FastAPI(title="Budget Étudiant API")
 
@@ -14,12 +15,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Les routers seront ajoutés ici, par ex. :
-# from routers import users, categories, expenses, incomes
-# app.include_router(users.router)
-# app.include_router(categories.router)
-# app.include_router(expenses.router)
-# app.include_router(incomes.router)
+app.include_router(users.router)
+app.include_router(expenses.router)
+app.include_router(incomes.router)
+# À venir : app.include_router(categories.router)
 
 
 @app.get("/api/health")
