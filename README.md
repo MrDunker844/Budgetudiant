@@ -133,6 +133,40 @@ uvicorn main:app --reload       # → http://localhost:8000
 
 ---
 
+## Intégration continue (GitHub Actions)
+
+Le fichier `.github/workflows/ci.yml` lance automatiquement des vérifications **à chaque push sur `main` et à chaque Pull Request vers `main`**.
+
+| Job | Ce qu'il vérifie |
+|---|---|
+| **Backend** | Installe les dépendances, vérifie la syntaxe Python, démarre un vrai MySQL, importe `database/schema.sql`, lance l'API et appelle `/api/health` (doit renvoyer `database: ok` et des transactions) |
+| **Frontend** | `npm ci`, `npm run lint` (oxlint), `npm run build` (Vite) |
+| **Docker** | Vérifie `docker-compose.yml` et construit l'image de l'API |
+
+Les 3 jobs tournent en parallèle sur des machines Ubuntu fournies par GitHub.
+
+### Voir le résultat
+
+- Onglet **Actions** du dépôt GitHub → cliquer sur l'exécution → cliquer sur un job pour voir le détail de chaque étape.
+- Dans une Pull Request, le statut apparaît en bas : ✅ tout passe, ❌ un job a échoué.
+- **Règle d'équipe : on ne merge pas une PR tant que la CI n'est pas verte.**
+
+### Si la CI échoue
+
+1. Ouvrir le job en rouge, puis l'étape en rouge : le message d'erreur est dedans.
+2. Reproduire en local avec la même commande (`npm run lint`, `npm run build`, `docker compose build api`…).
+3. Corriger, commit, push sur la même branche : la CI se relance toute seule sur la PR.
+
+En cas d'échec du job Backend, la dernière étape affiche les logs d'uvicorn.
+
+### Bloquer le merge si la CI échoue (optionnel)
+
+Sur GitHub : **Settings → Branches → Add branch ruleset** (ou *Branch protection rule*) pour `main` → cocher **Require status checks to pass** et sélectionner les jobs `Backend`, `Frontend`, `Docker`.
+
+> Le mot de passe MySQL de la CI est celui d'une base jetable, détruite à la fin du job. Pour ne pas l'écrire dans le fichier, on peut créer un secret `CI_DB_PASSWORD` dans **Settings → Secrets and variables → Actions** : le workflow l'utilise automatiquement s'il existe.
+
+---
+
 ## Problèmes fréquents
 
 - **Port 3306 déjà utilisé** (un autre MySQL est installé) : mettre `DB_PORT=3307` dans `backend/.env`, puis relancer. L'API dans Docker n'est pas impactée.
