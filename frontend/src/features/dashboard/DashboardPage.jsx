@@ -1,6 +1,12 @@
+import { useEffect, useMemo, useState } from "react";
 
-import { useMemo, useState } from "react";
-
+import {
+  createExpense,
+  getCategories,
+  getExpenses,
+  getIncomes,
+  getUserSummary,
+} from "../../services/api.js";
 import Header from "../../shared/header/Header.jsx";
 import Sidebar from "../../shared/sidebar/Sidebar.jsx";
 import DashboardWelcome from "./components/DashboardWelcome/DashboardWelcome.jsx";
@@ -11,49 +17,133 @@ import RecentTransactions from "./components/RecentTransactions/RecentTransactio
 import AddExpenseModal from "./components/AddExpenseModal/AddExpenseModal.jsx";
 import SectionPlaceholder from "./components/SectionPlaceholder/SectionPlaceholder.jsx";
 
-import {
-  DASHBOARD_CONFIG,
-  DASHBOARD_LABELS,
-  DASHBOARD_SECTIONS,
-  INITIAL_TRANSACTIONS,
-  WEEKLY_EXPENSES,
-} from "./dashboard.js";
-
+import { DASHBOARD_SECTIONS } from "./dashboard.js";
 import {
   getExpenseCategories,
-  getExpensesTotal,
+  getWeeklyExpenses,
 } from "./utils/dashboardCalculations.js";
 import { getInitials } from "./utils/dashboardFormatters.js";
 
 import "./DashboardPage.css";
 
+function getCurrentMonth() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function formatMonth(month) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const formatted = new Intl.DateTimeFormat("fr-FR", {
+    month: "long",
+    year: "numeric",
+  }).format(new Date(year, monthNumber - 1, 1));
+
+  return `${formatted.charAt(0).toLocaleUpperCase("fr-FR")}${formatted.slice(1)}`;
+}
+
+function mapTransactions(expenses, incomes) {
+  const expenseTransactions = expenses.map((expense) => ({
+    id: `expense-${expense.ex_id}`,
+    label: expense.ex_title,
+    categoryId: expense.categorie_id,
+    date: expense.ex_date,
+    amount: Number(expense.ex_amount),
+    type: "expense",
+  }));
+  const incomeTransactions = incomes.map((income) => ({
+    id: `income-${income.inc_id}`,
+    label: income.inc_title,
+    categoryId: income.categorie_id,
+    date: income.inc_date,
+    amount: Number(income.inc_amount),
+    type: "income",
+  }));
+
+  return [...expenseTransactions, ...incomeTransactions].sort(
+    (first, second) =>
+      second.date.localeCompare(first.date) ||
+      second.id.localeCompare(first.id)
+  );
+}
+
 export default function DashboardPage({
-  user = {},
-  onLogout = () => {},
+  user,
+  onLogout,
+  logoutError = "",
 }) {
+  const month = getCurrentMonth();
   const [activeSection, setActiveSection] = useState(
     DASHBOARD_SECTIONS.OVERVIEW
   );
-
   const [showExpenseModal, setShowExpenseModal] = useState(false);
   const [search, setSearch] = useState("");
-  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+  const [categories, setCategories] = useState([]);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [error, setError] = useState("");
+  const [refreshVersion, setRefreshVersion] = useState(0);
 
-  const expensesTotal = useMemo(
-    () => getExpensesTotal(transactions),
-    [transactions]
+  useEffect(() => {
+    const controller = new AbortController();
+
+    getCategories({ signal: controller.signal })
+      .then(setCategories)
+      .catch((requestError) => {
+        if (requestError.name !== "AbortError") {
+          setError(requestError.message);
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadDashboard() {
+      try {
+        const [summary, expenses, incomes] = await Promise.all([
+          getUserSummary(user.us_id, month, { signal: controller.signal }),
+          getExpenses(user.us_id, month, { signal: controller.signal }),
+          getIncomes(user.us_id, month, { signal: controller.signal }),
+        ]);
+        setDashboardData({
+          requestKey: `${user.us_id}:${month}:${refreshVersion}`,
+          summary,
+          transactions: mapTransactions(expenses, incomes),
+        });
+      } catch (requestError) {
+        if (requestError.name !== "AbortError") {
+          setError(requestError.message);
+        }
+      }
+    }
+
+    loadDashboard();
+    return () => controller.abort();
+  }, [user.us_id, month, refreshVersion]);
+
+  const requestKey = `${user.us_id}:${month}:${refreshVersion}`;
+  const isLoading = !error && dashboardData?.requestKey !== requestKey;
+  const profileName = user.us_name;
+  const nameParts = profileName.trim().split(/\s+/);
+  const profileInitials = getInitials(
+    nameParts[0],
+    nameParts.length > 1 ? nameParts[nameParts.length - 1] : ""
   );
-
-  const remaining = DASHBOARD_CONFIG.monthlyBudget - expensesTotal;
-
-  const categories = useMemo(
-    () => getExpenseCategories(transactions),
-    [transactions]
+  const expenseCategories = useMemo(
+    () =>
+      dashboardData
+        ? getExpenseCategories(dashboardData.transactions, categories)
+        : [],
+    [dashboardData, categories]
   );
-  const profileName = [user?.firstname, user?.lastname]
-    .map((part) => part?.trim())
-    .filter(Boolean)
-    .join(" ");
+  const weeklyExpenses = useMemo(
+    () =>
+      dashboardData
+        ? getWeeklyExpenses(dashboardData.transactions, month)
+        : [],
+    [dashboardData, month]
+  );
 
   function handleOpenExpenseModal() {
     setShowExpenseModal(true);
@@ -63,12 +153,12 @@ export default function DashboardPage({
     setShowExpenseModal(false);
   }
 
-  function handleAddExpense(expense) {
-    setTransactions((currentTransactions) => [
-      expense,
-      ...currentTransactions,
-    ]);
-
+  async function handleAddExpense(expense) {
+    await createExpense({
+      ...expense,
+      user_id: user.us_id,
+    });
+    setRefreshVersion((currentVersion) => currentVersion + 1);
     handleCloseExpenseModal();
     setSearch("");
     setActiveSection(DASHBOARD_SECTIONS.OVERVIEW);
@@ -91,61 +181,67 @@ export default function DashboardPage({
         activeSection={activeSection}
         onNavigate={handleNavigate}
         onLogout={onLogout}
+        profileName={profileName}
+        profileInitials={profileInitials}
       />
 
       <main className="dashboard-main">
         <Header
-          period={DASHBOARD_CONFIG.period}
+          period={formatMonth(month)}
           workspaceLabel="Mon espace"
           title="Vue d'ensemble"
-          profileLabel={DASHBOARD_LABELS.profile}
-          profileName={profileName}
-          profileInitials={getInitials(user?.firstname, user?.lastname)}
-          addExpenseLabel={DASHBOARD_LABELS.addExpense}
-          onAddExpense={handleOpenExpenseModal}
         />
 
         <div className="dashboard-content">
           <DashboardWelcome
             user={user}
+            period={formatMonth(month)}
             onAddExpense={handleOpenExpenseModal}
           />
 
-          {isOverview ? (
+          {logoutError && (
+            <p className="dashboard-error" role="alert">
+              Impossible de fermer la session : {logoutError}
+            </p>
+          )}
+
+          {error ? (
+            <p className="dashboard-error" role="alert">
+              Impossible de charger les données : {error}
+            </p>
+          ) : isLoading ? (
+            <p className="dashboard-status" role="status">
+              Chargement de ton espace…
+            </p>
+          ) : isOverview && dashboardData ? (
             <>
-              <SummaryCards
-                expensesTotal={expensesTotal}
-                remaining={remaining}
-              />
+              <SummaryCards summary={dashboardData.summary} />
 
               <section className="dashboard-charts-grid">
                 <ExpenseCategories
-                  categories={categories}
-                  expensesTotal={expensesTotal}
+                  categories={expenseCategories}
+                  expensesTotal={dashboardData.summary.total_depenses}
                 />
-
-                <WeeklyChart weeks={WEEKLY_EXPENSES} />
+                <WeeklyChart weeks={weeklyExpenses} />
               </section>
 
               <RecentTransactions
-                transactions={transactions}
+                transactions={dashboardData.transactions}
+                categories={categories}
                 search={search}
                 onSearchChange={setSearch}
                 onViewAll={handleViewAllExpenses}
               />
             </>
-          ) : (
+          ) : dashboardData ? (
             <SectionPlaceholder activeSection={activeSection} />
-          )}
-
-          <p className="dashboard-demo-notice">
-            {DASHBOARD_LABELS.demoNotice}
-          </p>
+          ) : null}
         </div>
       </main>
 
       {showExpenseModal && (
         <AddExpenseModal
+          categories={categories}
           onClose={handleCloseExpenseModal}
           onAdd={handleAddExpense}
         />

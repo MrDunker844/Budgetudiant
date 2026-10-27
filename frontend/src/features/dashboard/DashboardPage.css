@@ -22,11 +22,22 @@
   gap: var(--space-6);
 }
 
-.dashboard-demo-notice {
-  margin: var(--space-6) 0 0;
+.dashboard-status,
+.dashboard-error {
+  margin: var(--space-6) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.dashboard-status {
   color: var(--text-muted);
-  font-size: var(--font-sm);
-  text-align: center;
+}
+
+.dashboard-error {
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 @media (max-width: 64rem) {

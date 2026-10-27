@@ -1,3 +1,7 @@
+.dashboard-recent-transactions {
+  margin-top: var(--space-6);
+}
+
 .dashboard-transactions {
   display: flex;
   flex-direction: column;
@@ -110,6 +114,14 @@
 .dashboard-transaction__amount {
   flex-shrink: 0;
   font-weight: var(--font-weight-semibold);
+}
+
+.dashboard-transaction__amount--income {
+  color: var(--success);
+}
+
+.dashboard-transaction__amount--expense {
+  color: var(--text);
 }
 
 .dashboard-empty {
