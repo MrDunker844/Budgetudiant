@@ -86,9 +86,9 @@ jobs:
         if: failure()
         run: cat backend/uvicorn.log || true
 
-  # ---------- Frontend : lint + build ----------
+  # ---------- Frontend : lint + tests + build ----------
   frontend:
-    name: Frontend (lint + build)
+    name: Frontend (lint + tests + build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -110,6 +110,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Lancer les tests (vitest)
+        run: npm test
 
       - name: Build
         run: npm run build

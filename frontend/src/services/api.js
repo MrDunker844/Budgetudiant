@@ -61,6 +61,20 @@ export function logout() {
   return request("/api/auth/logout", { method: "POST" });
 }
 
+export function changePassword(passwords) {
+  return request("/api/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify(passwords),
+  });
+}
+
+export function updateUser(userId, user) {
+  return request(`/api/users/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify(user),
+  });
+}
+
 export function getCategories(options) {
   return request("/api/categories/", options);
 }

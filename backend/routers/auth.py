@@ -12,13 +12,14 @@ from auth import (
     verify_password,
 )
 from database import get_connection
-from models import FirstPasswordIn, LoginIn, RegisterIn, User
+from models import ChangePasswordIn, FirstPasswordIn, LoginIn, RegisterIn, User
 
 router = APIRouter(prefix="/api/auth", tags=["Authentification"])
 
 EMAIL_ALREADY_USED = "Cette adresse e-mail est déjà utilisée."
 INVALID_CREDENTIALS = "Adresse e-mail ou mot de passe incorrect."
 PASSWORD_ALREADY_SET = "Le mot de passe de ce compte a déjà été défini."
+WRONG_CURRENT_PASSWORD = "L'ancien mot de passe est incorrect."
 
 
 def _read_user(cursor, user_id: int) -> dict:
@@ -116,6 +117,31 @@ def set_first_password(data: FirstPasswordIn, response: Response):
 @router.get("/me", response_model=User)
 def current_user(user: User = Depends(get_current_user)):
     return user
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(data: ChangePasswordIn, user: User = Depends(get_current_user)):
+    connection = get_connection()
+    try:
+        cursor = connection.cursor(dictionary=True)
+        cursor.execute(
+            "SELECT us_password_hash FROM users WHERE us_id = %s",
+            (user.us_id,),
+        )
+        row = cursor.fetchone()
+        # 400 et pas 401 : le frontend traite 401 comme une session expirée (R8)
+        if row is None or not verify_password(data.current_password, row["us_password_hash"]):
+            raise HTTPException(status_code=400, detail=WRONG_CURRENT_PASSWORD)
+
+        cursor.execute(
+            "UPDATE users SET us_password_hash = %s WHERE us_id = %s",
+            (hash_password(data.new_password), user.us_id),
+        )
+        connection.commit()
+        cursor.close()
+        return None
+    finally:
+        connection.close()
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)

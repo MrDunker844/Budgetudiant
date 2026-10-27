@@ -179,3 +179,71 @@ def test_expired_or_invalid_setup_token_is_rejected(
     )
 
     assert response.status_code == 401
+
+
+# ---------- R8 : changement de mot de passe ----------
+NEW_PASSWORD_BODY = {
+    "current_password": "old-password-123",
+    "new_password": "new-secure-password-456",
+}
+
+
+def test_r8_change_password_updates_hash(client, fake_db, monkeypatch):
+    monkeypatch.setattr("routers.auth.verify_password", lambda password, hashed: True)
+    monkeypatch.setattr("routers.auth.hash_password", lambda _: "new-argon-hash")
+    fake_db.responses = [[{"us_password_hash": "old-argon-hash"}], []]
+
+    response = client.post("/api/auth/change-password", json=NEW_PASSWORD_BODY)
+
+    assert response.status_code == 204
+    assert fake_db.committed
+    update_query, update_params = fake_db.queries[1]
+    assert "SET us_password_hash" in update_query
+    assert update_params == ("new-argon-hash", 1)
+
+
+def test_r8_change_password_keeps_session_open(client, fake_db, monkeypatch):
+    monkeypatch.setattr("routers.auth.verify_password", lambda password, hashed: True)
+    fake_db.responses = [[{"us_password_hash": "old-argon-hash"}], []]
+
+    response = client.post("/api/auth/change-password", json=NEW_PASSWORD_BODY)
+
+    # Aucun cookie supprimé : l'utilisateur reste connecté
+    assert "set-cookie" not in response.headers
+
+
+def test_r8_wrong_current_password_returns_400(client, fake_db, monkeypatch):
+    monkeypatch.setattr("routers.auth.verify_password", lambda password, hashed: False)
+    fake_db.responses = [[{"us_password_hash": "old-argon-hash"}]]
+
+    response = client.post("/api/auth/change-password", json=NEW_PASSWORD_BODY)
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "L'ancien mot de passe est incorrect."
+    assert not fake_db.committed
+    assert len(fake_db.queries) == 1  # pas d'UPDATE
+
+
+def test_r8_new_password_too_short_is_rejected(client, fake_db):
+    response = client.post(
+        "/api/auth/change-password",
+        json={**NEW_PASSWORD_BODY, "new_password": "short"},
+    )
+
+    assert response.status_code == 422
+    assert fake_db.queries == []
+
+
+def test_r8_new_password_too_long_is_rejected(client, fake_db):
+    response = client.post(
+        "/api/auth/change-password",
+        json={**NEW_PASSWORD_BODY, "new_password": "x" * 129},
+    )
+
+    assert response.status_code == 422
+
+
+def test_r8_change_password_requires_session(anonymous_client):
+    response = anonymous_client.post("/api/auth/change-password", json=NEW_PASSWORD_BODY)
+
+    assert response.status_code == 401
