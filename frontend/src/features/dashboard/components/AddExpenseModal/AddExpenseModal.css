@@ -1,0 +1,117 @@
+.dashboard-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgb(15 23 42 / 55%);
+}
+
+.dashboard-modal {
+  width: min(100%, 34rem);
+  max-height: min(90vh, 48rem);
+  overflow-y: auto;
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: 0 1.5rem 4rem rgb(15 23 42 / 22%);
+}
+
+.dashboard-modal__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.dashboard-modal__heading h2 {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-lg);
+}
+
+.dashboard-modal__heading p {
+  margin-bottom: 0;
+  color: var(--text-muted);
+  font-size: var(--font-sm);
+}
+
+.dashboard-modal__close {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.dashboard-modal__close:hover {
+  background: var(--background);
+  color: var(--text);
+}
+
+.dashboard-expense-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dashboard-expense-form > label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--text);
+  font-size: var(--font-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.dashboard-expense-form input,
+.dashboard-expense-form select {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.dashboard-expense-form input:focus,
+.dashboard-expense-form select:focus {
+  border-color: var(--primary);
+  outline: 2px solid var(--primary-light);
+}
+
+.dashboard-expense-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.dashboard-form-error {
+  margin-bottom: 0;
+  color: var(--danger);
+  font-size: var(--font-sm);
+}
+
+@media (max-width: 36rem) {
+  .dashboard-modal {
+    padding: var(--space-4);
+  }
+
+  .dashboard-expense-form__actions {
+    flex-direction: column-reverse;
+  }
+
+  .dashboard-expense-form__actions .ui-button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,33 @@
+.dashboard-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.dashboard-welcome h1 {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.dashboard-welcome p {
+  margin-bottom: 0;
+  color: var(--text-muted);
+}
+
+.dashboard-welcome-actions {
+  flex-shrink: 0;
+}
+
+@media (max-width: 40rem) {
+  .dashboard-welcome {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dashboard-welcome h1 {
+    font-size: var(--font-xl);
+  }
+}
