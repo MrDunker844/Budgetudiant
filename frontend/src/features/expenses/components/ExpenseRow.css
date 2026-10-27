@@ -1,0 +1,83 @@
+.expense-row__description {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  min-width: 200px;
+}
+
+.expense-row__description > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: .25rem;
+}
+
+.expense-row__description strong {
+  font-size: var(--font-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
+}
+
+.expense-row__description small {
+  color: var(--text-muted);
+  font-size: .74rem;
+  line-height: 1.3;
+}
+
+.expense-row__icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid #d5f0e2;
+  border-radius: 13px;
+  background: #effaf4;
+  color: var(--primary);
+  font-size: 1.15rem;
+}
+
+.expense-row__amount {
+  color: var(--text);
+  font-size: .9rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-bold);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.expense-row__date {
+  white-space: nowrap;
+  color: var(--text-muted) !important;
+  font-size: .84rem !important;
+}
+
+.expense-row__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .15rem;
+  white-space: nowrap;
+}
+
+.expense-row__delete {
+  color: var(--danger) !important;
+}
+
+.expense-row__actions .ui-button {
+  min-height: 2.15rem;
+}
+
+@media (max-width: 760px) {
+  .expense-row__date {
+    display: none;
+  }
+
+  .expense-row__description small {
+    display: block;
+  }
+}
+
+@media (min-width: 761px) {
+  .expense-row__description small {
+    display: none;
+  }
+}

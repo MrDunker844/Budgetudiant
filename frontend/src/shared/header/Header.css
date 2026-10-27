@@ -1,0 +1,69 @@
+.shared-header {
+  position: fixed;
+  z-index: 15;
+  top: 0;
+  right: 0;
+  left: var(--sidebar-width);
+  display: flex;
+  height: var(--topbar-height);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 0 var(--page-padding);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.shared-header__breadcrumb,
+.shared-header__actions {
+  display: flex;
+  align-items: center;
+}
+
+.shared-header__breadcrumb,
+.shared-header__actions {
+  gap: var(--space-3);
+}
+
+.shared-header__breadcrumb {
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: var(--font-sm);
+}
+
+.shared-header__breadcrumb strong {
+  color: var(--text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.shared-header__actions {
+  flex-shrink: 0;
+}
+
+.shared-header__period {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: var(--font-sm);
+}
+
+@media (max-width: 48rem) {
+  .shared-header {
+    left: 4.5rem;
+    gap: var(--space-2);
+    padding-inline: var(--space-4);
+  }
+
+  .shared-header__breadcrumb > span,
+  .shared-header__period {
+    display: none;
+  }
+
+  .shared-header__actions {
+    gap: var(--space-2);
+  }
+}

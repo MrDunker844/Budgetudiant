@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 # ---------- Utilisateurs ----------
@@ -11,11 +11,33 @@ class UserIn(BaseModel):
     us_email: EmailStr
     us_monthly_budget: Optional[float] = Field(default=None, gt=0)
 
+    @field_validator("us_name")
+    @classmethod
+    def normalize_name(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("Le nom ne peut pas être vide.")
+        return normalized
+
 
 class User(UserIn):
     """Utilisateur renvoyé par l'API."""
     us_id: int
     us_created_at: datetime
+
+
+class RegisterIn(UserIn):
+    password: str = Field(min_length=12, max_length=128)
+
+
+class LoginIn(BaseModel):
+    us_email: EmailStr
+    password: str = Field(min_length=1, max_length=128)
+
+
+class FirstPasswordIn(BaseModel):
+    setup_token: str = Field(min_length=1)
+    password: str = Field(min_length=12, max_length=128)
 
 
 # ---------- Catégories ----------

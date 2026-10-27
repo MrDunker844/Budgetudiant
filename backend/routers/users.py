@@ -1,7 +1,8 @@
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from auth import get_current_user
 from database import get_connection
 from models import Summary, User, UserIn
 from routers.common import MONTH_PATTERN, month_filter, row_exists
@@ -50,20 +51,14 @@ def compute_summary(
 
 
 @router.get("/", response_model=list[User])
-def list_users():
-    conn = get_connection()
-    try:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM users ORDER BY us_name")
-        rows = cursor.fetchall()
-        cursor.close()
-        return rows
-    finally:
-        conn.close()
+def list_users(current_user: User = Depends(get_current_user)):
+    return [current_user]
 
 
 @router.get("/{us_id}", response_model=User)
-def get_user(us_id: int):
+def get_user(us_id: int, current_user: User = Depends(get_current_user)):
+    if us_id != current_user.us_id:
+        raise HTTPException(status_code=404, detail=NOT_FOUND)
     conn = get_connection()
     try:
         cursor = conn.cursor(dictionary=True)
@@ -77,7 +72,7 @@ def get_user(us_id: int):
 
 
 @router.post("/", response_model=User, status_code=201)
-def create_user(user: UserIn):
+def create_user(user: UserIn, current_user: User = Depends(get_current_user)):
     conn = get_connection()
     try:
         cursor = conn.cursor(dictionary=True)
@@ -96,7 +91,13 @@ def create_user(user: UserIn):
 
 
 @router.put("/{us_id}", response_model=User)
-def update_user(us_id: int, user: UserIn):
+def update_user(
+    us_id: int,
+    user: UserIn,
+    current_user: User = Depends(get_current_user),
+):
+    if us_id != current_user.us_id:
+        raise HTTPException(status_code=404, detail=NOT_FOUND)
     conn = get_connection()
     try:
         cursor = conn.cursor(dictionary=True)
@@ -116,12 +117,12 @@ def update_user(us_id: int, user: UserIn):
 
 
 @router.delete("/{us_id}", status_code=204)
-def delete_user(us_id: int):
+def delete_user(us_id: int, current_user: User = Depends(get_current_user)):
     """⚠️ Supprime aussi toutes ses dépenses et tous ses revenus (ON DELETE CASCADE)."""
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        if not row_exists(cursor, "users", "us_id", us_id):
+        if us_id != current_user.us_id or not row_exists(cursor, "users", "us_id", us_id):
             raise HTTPException(status_code=404, detail=NOT_FOUND)
         cursor.execute("DELETE FROM users WHERE us_id = %s", (us_id,))
         conn.commit()
@@ -131,14 +132,18 @@ def delete_user(us_id: int):
 
 
 @router.get("/{us_id}/summary", response_model=Summary)
-def get_summary(us_id: int, month: Optional[str] = Query(default=None, pattern=MONTH_PATTERN)):
+def get_summary(
+    us_id: int,
+    month: Optional[str] = Query(default=None, pattern=MONTH_PATTERN),
+    current_user: User = Depends(get_current_user),
+):
     """Tableau de bord d'un utilisateur : revenus, dépenses, solde (sur un mois si ?month=2026-10)."""
     conn = get_connection()
     try:
         cursor = conn.cursor(dictionary=True)
         cursor.execute("SELECT us_monthly_budget FROM users WHERE us_id = %s", (us_id,))
         user = cursor.fetchone()
-        if user is None:
+        if us_id != current_user.us_id or user is None:
             raise HTTPException(status_code=404, detail=NOT_FOUND)
 
         inc_sql, inc_params = month_filter("inc_date", month)

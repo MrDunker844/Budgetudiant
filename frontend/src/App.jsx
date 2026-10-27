@@ -1,97 +1,150 @@
+import DashboardPage from "./features/dashboard/DashBoardPage.jsx";
 import { useEffect, useState } from "react";
-import { getUser, updateUser } from "./services/api";
-import "./App.css";
 
-function App() {
-  const userId = 1;
+import "./App.css";
+import { getCurrentUser, logout } from "./services/api.js";
+import AuthPage from "./features/auth/AuthPage.jsx";
+import HomePage from "./features/homepage/HomePage.jsx";
+
+const HOME_PATH = "/";
+const LOGIN_PATH = "/login";
+const REGISTER_PATH = "/register";
+const DASHBOARD_PATH = "/dashboard";
+const FIRST_PASSWORD_PATH = "/setup-password";
+const KNOWN_PATHS = [
+  HOME_PATH,
+  LOGIN_PATH,
+  REGISTER_PATH,
+  DASHBOARD_PATH,
+  FIRST_PASSWORD_PATH,
+];
+
+function navigateTo(path) {
+  window.history.pushState({}, "", path);
+  window.dispatchEvent(new PopStateEvent("popstate"));
+}
+
+function ProtectedDashboard() {
   const [user, setUser] = useState(null);
-  const [form, setForm] = useState({ us_name: "", us_email: "", us_monthly_budget: "" });
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  const [logoutError, setLogoutError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getUser(userId)
-      .then((data) => {
-        setUser(data);
-        setForm({
-          us_name: data.us_name,
-          us_email: data.us_email,
-          us_monthly_budget: data.us_monthly_budget ?? "",
-        });
+    let active = true;
+
+    getCurrentUser()
+      .then((authenticatedUser) => {
+        if (active) {
+          setUser(authenticatedUser);
+        }
       })
-      .catch((err) => setError(err.message));
+      .catch((requestError) => {
+        if (!active) {
+          return;
+        }
+        if (requestError.status === 401) {
+          navigateTo(LOGIN_PATH);
+        } else {
+          setError(requestError.message);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
-  function handleChange(event) {
-    setForm({ ...form, [event.target.name]: event.target.value });
-  }
-
-  async function handleSubmit(event) {
-    event.preventDefault();
-    setError("");
-    setMessage("");
+  async function handleLogout() {
+    setLogoutError("");
     try {
-      const updated = await updateUser(userId, {
-        us_name: form.us_name,
-        us_email: form.us_email,
-        us_monthly_budget: Number(form.us_monthly_budget),
-      });
-      setUser(updated);
-      setForm({
-        us_name: updated.us_name,
-        us_email: updated.us_email,
-        us_monthly_budget: updated.us_monthly_budget ?? "",
-      });
-      setMessage("Profil et budget enregistrés.");
-    } catch (err) {
-      setError(err.message);
+      await logout();
+      navigateTo(LOGIN_PATH);
+    } catch (requestError) {
+      if (requestError.status === 401) {
+        navigateTo(LOGIN_PATH);
+      } else {
+        setLogoutError(requestError.message);
+      }
     }
   }
 
-  return (
-    <>
-      <header className="app-header">
-        <strong>Budget Étudiant</strong>
-        <nav>
-          <a href="/">Tableau de bord</a>
-          <a className="account-link" href="#profil">Compte</a>
-        </nav>
-      </header>
-      <main className="profile-page" id="profil">
-        <p className="eyebrow">Mon compte</p>
-        <h1>Mon profil</h1>
-        <p className="intro">Modifie tes informations et initialise ton budget mensuel.</p>
-        {error && <p className="feedback error">{error}</p>}
-        {message && <p className="feedback success">{message}</p>}
-        {user ? (
-          <form className="profile-card" onSubmit={handleSubmit}>
-            <label>
-              Nom
-              <input name="us_name" value={form.us_name} onChange={handleChange} required />
-            </label>
-            <label>
-              Adresse e-mail
-              <input name="us_email" type="email" value={form.us_email} onChange={handleChange} required />
-            </label>
-            <label>
-              Budget mensuel disponible (€)
-              <input
-                name="us_monthly_budget"
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={form.us_monthly_budget}
-                onChange={handleChange}
-                required
-              />
-            </label>
-            <button type="submit">Enregistrer</button>
-          </form>
-        ) : !error ? (
-          <p>Chargement du profil…</p>
-        ) : null}
+  if (isLoading) {
+    return <p className="app-status" role="status">Vérification de la session…</p>;
+  }
+  if (error) {
+    return (
+      <main className="app-error">
+        <p role="alert">Impossible de vérifier la session : {error}</p>
+        <button type="button" onClick={() => window.location.reload()}>
+          Réessayer
+        </button>
       </main>
-    </>
+    );
+  }
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <DashboardPage
+      user={user}
+      onLogout={handleLogout}
+      logoutError={logoutError}
+    />
+  );
+}
+
+function App() {
+  const [pathname, setPathname] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const handlePopState = () => setPathname(window.location.pathname);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (!KNOWN_PATHS.includes(pathname)) {
+      window.history.replaceState({}, "", HOME_PATH);
+    }
+  }, [pathname]);
+
+  if (pathname === DASHBOARD_PATH) {
+    return <ProtectedDashboard />;
+  }
+
+  if (pathname === LOGIN_PATH || pathname === REGISTER_PATH) {
+    return (
+      <AuthPage
+        mode={pathname === REGISTER_PATH ? "register" : "login"}
+        onNavigate={navigateTo}
+        onAuthenticated={() => navigateTo(DASHBOARD_PATH)}
+      />
+    );
+  }
+
+  if (pathname === FIRST_PASSWORD_PATH) {
+    return (
+      <AuthPage
+        mode="setup"
+        onNavigate={navigateTo}
+        onAuthenticated={() => navigateTo(DASHBOARD_PATH)}
+      />
+    );
+  }
+
+  return (
+    <HomePage
+      onLogin={() => navigateTo(LOGIN_PATH)}
+      onRegister={() => navigateTo(REGISTER_PATH)}
+      onDashboard={() => navigateTo(DASHBOARD_PATH)}
+    />
   );
 }
 
