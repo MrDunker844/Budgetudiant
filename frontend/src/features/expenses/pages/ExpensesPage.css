@@ -1,0 +1,153 @@
+.expenses-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.expenses-page__heading,
+.expenses-list-card__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.expenses-page__heading h1 {
+  margin: 0 0 .5rem;
+  font-size: clamp(1.7rem, 2vw, 2.15rem);
+  letter-spacing: -.04em;
+}
+
+.expenses-page__eyebrow {
+  margin: 0 0 .55rem;
+  color: var(--primary);
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+
+.expenses-page__subtitle,
+.expenses-list-card__heading p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: .9rem;
+}
+
+.expenses-page__heading > .ui-button {
+  flex-shrink: 0;
+}
+
+.expenses-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.expenses-summary__card {
+  display: grid;
+  gap: .45rem;
+  padding: 1.25rem;
+}
+
+.expenses-summary__label,
+.expenses-summary__card small {
+  color: var(--text-muted);
+  font-size: .82rem;
+}
+
+.expenses-summary__card > strong {
+  font-size: 1.45rem;
+}
+
+.expenses-list-card {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.expenses-list-card__heading {
+  padding: 1.4rem 1.5rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.expenses-list-card__heading h2 {
+  margin: 0 0 .35rem;
+  font-size: 1.15rem;
+  letter-spacing: -.02em;
+}
+
+.expenses-list-card__count {
+  padding: .4rem .7rem;
+  border-radius: 999px;
+  background: var(--primary-light);
+  color: var(--primary-hover);
+  font-size: .78rem;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.expenses-list-card__table {
+  min-width: 0;
+  margin: 0 1.5rem 1.5rem;
+}
+
+.expenses-list-card__filters {
+  min-width: 0;
+}
+
+.expenses-page__notice,
+.expenses-page__error {
+  padding: .8rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.expenses-page__notice {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--primary);
+}
+
+.expenses-page__notice button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .expenses-page__heading {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .expenses-page__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .expenses-page__heading > .ui-button {
+    width: 100%;
+  }
+
+  .expenses-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .expenses-list-card {
+    padding: 0;
+  }
+
+  .expenses-list-card__heading {
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .expenses-list-card__table {
+    margin: 0 1rem 1rem;
+  }
+}

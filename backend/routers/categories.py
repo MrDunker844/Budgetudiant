@@ -11,7 +11,10 @@ def list_categories():
     conn = get_connection()
     try:
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM categories ORDER BY cat_name")
+        cursor.execute(
+            "SELECT cat_id, cat_name, cat_color, cat_description, cat_created_at "
+            "FROM categories ORDER BY cat_name"
+        )
         rows = cursor.fetchall()
         cursor.close()
         return rows

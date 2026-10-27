@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { getCurrentUser, logout } from "./services/api.js";
 import AuthPage from "./features/auth/AuthPage.jsx";
-import DashboardPage from "./features/dashboard/DashboardPage.jsx";
 import HomePage from "./features/homepage/HomePage.jsx";
 
 const HOME_PATH = "/";

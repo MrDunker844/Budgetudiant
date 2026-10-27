@@ -124,6 +124,8 @@ uvicorn main:app --reload       # → http://localhost:8000
 | Dépenses | `GET /api/expenses/` · `GET /api/expenses/{id}` · `POST /api/expenses/` · `PUT /api/expenses/{id}` · `DELETE /api/expenses/{id}` | Filtres facultatifs sur la liste : `?user_id=1&month=2026-10` |
 | Revenus | `GET /api/incomes/` · `GET /api/incomes/{id}` · `POST /api/incomes/` · `PUT /api/incomes/{id}` · `DELETE /api/incomes/{id}` | Mêmes filtres que les dépenses |
 
+📖 Détail de chaque route (champs, exemples, erreurs, utilisation depuis React) : **[backend/API.md](backend/API.md)**.
+
 Codes de réponse : `201` création, `204` suppression, `404` id introuvable, `400` `user_id` ou `categorie_id` inexistant, `422` données invalides (montant ≤ 0, titre vide, e-mail mal formé, mois au mauvais format…).
 
 ### Tests automatiques
