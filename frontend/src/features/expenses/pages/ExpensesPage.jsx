@@ -122,18 +122,6 @@ export default function ExpensesPage({ user, categories = [], onExpensesChanged 
 
   return (
     <section className="expenses-page">
-      <div className="expenses-page__heading">
-        <div>
-          <p className="expenses-page__eyebrow">GESTION DU BUDGET</p>
-          <h1>Mes dépenses</h1>
-          <p className="expenses-page__subtitle">
-            Garde un œil sur tes dépenses et maîtrise ton budget.
-          </p>
-        </div>
-        <Button onClick={openCreate}>
-          <span aria-hidden="true">＋</span> Ajouter une dépense
-        </Button>
-      </div>
 
       {notice && (
         <div className="expenses-page__notice" role="status">
