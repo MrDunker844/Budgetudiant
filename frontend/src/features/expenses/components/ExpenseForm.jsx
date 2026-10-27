@@ -3,7 +3,6 @@ import Button from "../../../shared/ui/Button/Button.jsx";
 import Input from "../../../shared/ui/Input/Input.jsx";
 import Select from "../../../shared/ui/Select/Select.jsx";
 import FormField from "../../../shared/ui/FormField/FormField.jsx";
-import { EXPENSE_CATEGORIES } from "../expenses.js";
 
 function getInitialValues(expense) {
   return {
@@ -16,6 +15,7 @@ function getInitialValues(expense) {
 
 export default function ExpenseForm({
   expense = null,
+  categories = [],
   onSubmit,
   onCancel,
   saving = false,
@@ -114,9 +114,9 @@ export default function ExpenseForm({
           value={values.category_id}
           onChange={updateField}
           placeholder="Sélectionner une catégorie"
-          options={EXPENSE_CATEGORIES.map((category) => ({
-            value: String(category.id),
-            label: category.name,
+          options={categories.map((category) => ({
+            value: String(category.cat_id),
+            label: category.cat_name,
           }))}
           required
         />

@@ -16,8 +16,9 @@ import WeeklyChart from "./components/WeeklyChart/WeeklyChart.jsx";
 import RecentTransactions from "./components/RecentTransactions/RecentTransactions.jsx";
 import AddExpenseModal from "./components/AddExpenseModal/AddExpenseModal.jsx";
 import SectionPlaceholder from "./components/SectionPlaceholder/SectionPlaceholder.jsx";
+import ExpensesPage from "../expenses/pages/ExpensesPage.jsx";
 
-import { DASHBOARD_SECTIONS } from "./dashboard.js";
+import { DASHBOARD_NAVIGATION, DASHBOARD_SECTIONS } from "./dashboard.js";
 import {
   getExpenseCategories,
   getWeeklyExpenses,
@@ -174,6 +175,9 @@ export default function DashboardPage({
   }
 
   const isOverview = activeSection === DASHBOARD_SECTIONS.OVERVIEW;
+  const activeSectionLabel = DASHBOARD_NAVIGATION.find(
+    (section) => section.id === activeSection
+  )?.label ?? "Vue d'ensemble";
 
   return (
     <div className="dashboard-layout">
@@ -189,7 +193,7 @@ export default function DashboardPage({
         <Header
           period={formatMonth(month)}
           workspaceLabel="Mon espace"
-          title="Vue d'ensemble"
+          title={activeSectionLabel}
         />
 
         <div className="dashboard-content">
@@ -233,6 +237,14 @@ export default function DashboardPage({
                 onViewAll={handleViewAllExpenses}
               />
             </>
+          ) : activeSection === DASHBOARD_SECTIONS.EXPENSES && dashboardData ? (
+            <ExpensesPage
+              user={user}
+              categories={categories}
+              onExpensesChanged={() =>
+                setRefreshVersion((currentVersion) => currentVersion + 1)
+              }
+            />
           ) : dashboardData ? (
             <SectionPlaceholder activeSection={activeSection} />
           ) : null}

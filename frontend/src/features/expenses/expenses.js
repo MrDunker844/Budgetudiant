@@ -1,120 +1,51 @@
-/**
- * Service frontend des dépenses.
- * Le backend ne proposant pas encore les routes transactions, cette version
- * utilise des données de démonstration en mémoire. Les fonctions sont isolées
- * ici pour faciliter le remplacement par les appels API ensuite.
- */
-const initialExpenses = [
-  {
-    id: 1,
-    amount: 380,
-    type: "depense",
-    date: "2026-10-02",
-    description: "Loyer",
-    category_id: 2,
-    category: "Logement",
-  },
-  {
-    id: 2,
-    amount: 65.4,
-    type: "depense",
-    date: "2026-10-08",
-    description: "Courses du mois",
-    category_id: 1,
-    category: "Alimentation",
-  },
-  {
-    id: 3,
-    amount: 30,
-    type: "depense",
-    date: "2026-10-10",
-    description: "Pass transport",
-    category_id: 3,
-    category: "Transport",
-  },
-  {
-    id: 4,
-    amount: 12.5,
-    type: "depense",
-    date: "2026-10-15",
-    description: "Cinéma",
-    category_id: 4,
-    category: "Loisirs",
-  },
-  {
-    id: 5,
-    amount: 18.9,
-    type: "depense",
-    date: "2026-10-19",
-    description: "Déjeuner universitaire",
-    category_id: 1,
-    category: "Alimentation",
-  },
-  {
-    id: 6,
-    amount: 9.99,
-    type: "depense",
-    date: "2026-10-22",
-    description: "Abonnement musique",
-    category_id: 4,
-    category: "Loisirs",
-  },
-];
+import {
+  createExpense as createApiExpense,
+  deleteExpense as deleteApiExpense,
+  getExpenses as getApiExpenses,
+  updateExpense as updateApiExpense,
+} from "../../services/api.js";
 
-export const EXPENSE_CATEGORIES = [
-  { id: 1, name: "Alimentation" },
-  { id: 2, name: "Logement" },
-  { id: 3, name: "Transport" },
-  { id: 4, name: "Loisirs" },
-  { id: 5, name: "Santé" },
-  { id: 6, name: "Études" },
-  { id: 7, name: "Autre" },
-];
-
-let expenses = [...initialExpenses];
-let nextId = Math.max(...initialExpenses.map((expense) => expense.id)) + 1;
-
-// Mode démonstration temporaire : les données ne sont pas conservées au rechargement.
-export async function getExpenses() {
-  return [...expenses].sort((a, b) => b.date.localeCompare(a.date));
+function toApiExpense(userId, values) {
+  return {
+    user_id: userId,
+    categorie_id: values.category_id ? Number(values.category_id) : null,
+    ex_title: values.description.trim(),
+    ex_amount: Number(values.amount),
+    ex_date: values.date,
+    ex_description: null,
+  };
 }
 
-export async function createExpense(values) {
-  const category = EXPENSE_CATEGORIES.find(
-    (item) => item.id === Number(values.category_id),
+function fromApiExpense(expense, categories) {
+  const categoryId = expense.categorie_id;
+  const category = categories.find(
+    (item) => Number(item.cat_id) === Number(categoryId),
   );
-  const expense = {
-    id: nextId++,
-    amount: Number(values.amount),
+
+  return {
+    id: expense.ex_id,
+    amount: Number(expense.ex_amount),
     type: "depense",
-    date: values.date,
-    description: values.description.trim(),
-    category_id: category?.id ?? null,
-    category: category?.name ?? "Sans catégorie",
+    date: expense.ex_date,
+    description: expense.ex_title,
+    category_id: categoryId,
+    category: category?.cat_name ?? "Sans catégorie",
   };
-  expenses = [expense, ...expenses];
-  return expense;
 }
 
-export async function updateExpense(id, values) {
-  const category = EXPENSE_CATEGORIES.find(
-    (item) => item.id === Number(values.category_id),
-  );
-  const updated = {
-    id,
-    amount: Number(values.amount),
-    type: "depense",
-    date: values.date,
-    description: values.description.trim(),
-    category_id: category?.id ?? null,
-    category: category?.name ?? "Sans catégorie",
-  };
-  expenses = expenses.map((expense) =>
-    expense.id === id ? updated : expense,
-  );
-  return updated;
+export async function getExpenses(userId, categories = []) {
+  const expenses = await getApiExpenses(userId);
+  return expenses.map((expense) => fromApiExpense(expense, categories));
+}
+
+export async function createExpense(userId, values) {
+  return createApiExpense(toApiExpense(userId, values));
+}
+
+export async function updateExpense(userId, id, values) {
+  return updateApiExpense(id, toApiExpense(userId, values));
 }
 
 export async function deleteExpense(id) {
-  expenses = expenses.filter((expense) => expense.id !== id);
+  return deleteApiExpense(id);
 }

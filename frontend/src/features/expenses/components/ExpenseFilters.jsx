@@ -2,10 +2,9 @@ import Input from "../../../shared/ui/Input/Input.jsx";
 import Select from "../../../shared/ui/Select/Select.jsx";
 import Button from "../../../shared/ui/Button/Button.jsx";
 import { RotateCcw, Search } from "lucide-react";
-import { EXPENSE_CATEGORIES } from "../expenses.js";
 import "./ExpenseFilters.css";
 
-export default function ExpenseFilters({ filters, onChange, onReset }) {
+export default function ExpenseFilters({ filters, categories = [], onChange, onReset }) {
   const hasActiveFilters =
     Boolean(filters.search) ||
     Boolean(filters.category) ||
@@ -37,9 +36,9 @@ export default function ExpenseFilters({ filters, onChange, onReset }) {
             name="category"
             value={filters.category}
             onChange={change}
-            options={EXPENSE_CATEGORIES.map((category) => ({
-              value: String(category.id),
-              label: category.name,
+            options={categories.map((category) => ({
+              value: String(category.cat_id),
+              label: category.cat_name,
             }))}
             placeholder="Toutes les catégories"
           />
