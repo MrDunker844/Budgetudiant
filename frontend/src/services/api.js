@@ -66,10 +66,13 @@ export function getCategories(options) {
 }
 
 export function getExpenses(userId, month, options) {
-  const query = new URLSearchParams({
-    user_id: String(userId),
-    month,
-  });
+  const query = new URLSearchParams();
+  if (userId !== undefined && userId !== null) {
+    query.set("user_id", String(userId));
+  }
+  if (month) {
+    query.set("month", month);
+  }
   return request(`/api/expenses/?${query}`, options);
 }
 
@@ -91,4 +94,15 @@ export function createExpense(expense) {
     method: "POST",
     body: JSON.stringify(expense),
   });
+}
+
+export function updateExpense(expenseId, expense) {
+  return request(`/api/expenses/${expenseId}`, {
+    method: "PUT",
+    body: JSON.stringify(expense),
+  });
+}
+
+export function deleteExpense(expenseId) {
+  return request(`/api/expenses/${expenseId}`, { method: "DELETE" });
 }

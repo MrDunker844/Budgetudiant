@@ -17,7 +17,7 @@ import "./ExpensesPage.css";
 
 const emptyFilters = { search: "", category: "", period: "all" };
 
-export default function ExpensesPage() {
+export default function ExpensesPage({ user, categories = [], onExpensesChanged }) {
   const [expenses, setExpenses] = useState([]);
   const [filters, setFilters] = useState(emptyFilters);
   const [loading, setLoading] = useState(true);
@@ -32,7 +32,7 @@ export default function ExpensesPage() {
     setLoading(true);
     setLoadError("");
     try {
-      setExpenses(await getExpenses());
+      setExpenses(await getExpenses(user.us_id, categories));
     } catch (error) {
       setLoadError(error.message || "Impossible de charger les dépenses.");
     } finally {
@@ -42,7 +42,7 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     refreshExpenses();
-  }, []);
+  }, [user.us_id, categories]);
 
   const visibleExpenses = useMemo(() => {
     const now = new Date();
@@ -94,11 +94,12 @@ export default function ExpensesPage() {
     setSaving(true);
     try {
       if (editingExpense) {
-        await updateExpense(editingExpense.id, values);
+        await updateExpense(user.us_id, editingExpense.id, values);
       } else {
-        await createExpense(values);
+        await createExpense(user.us_id, values);
       }
       await refreshExpenses();
+      onExpensesChanged?.();
       setModalOpen(false);
       setNotice(editingExpense ? "Dépense modifiée." : "Dépense ajoutée.");
     } finally {
@@ -111,6 +112,7 @@ export default function ExpensesPage() {
     try {
       await deleteExpense(deleteTarget.id);
       await refreshExpenses();
+      onExpensesChanged?.();
       setNotice("Dépense supprimée.");
       setDeleteTarget(null);
     } catch (error) {
@@ -182,6 +184,7 @@ export default function ExpensesPage() {
         <div className="expenses-list-card__filters">
           <ExpenseFilters
             filters={filters}
+            categories={categories}
             onChange={setFilters}
             onReset={() => setFilters(emptyFilters)}
           />
@@ -218,6 +221,7 @@ export default function ExpensesPage() {
       >
         <ExpenseForm
           expense={editingExpense}
+          categories={categories}
           onSubmit={handleSave}
           onCancel={() => setModalOpen(false)}
           saving={saving}
