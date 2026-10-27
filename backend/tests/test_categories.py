@@ -16,8 +16,7 @@ def test_list_categories(client, fake_db):
 
     assert response.status_code == 200
     assert response.json()[0]["cat_name"] == "Alimentation"
-    assert (
-        fake_db.queries[0][0]
-        == "SELECT cat_id, cat_name, cat_color, cat_description, cat_created_at "
+    assert fake_db.queries[0][0] == (
+        "SELECT cat_id, cat_name, cat_color, cat_description, cat_created_at "
         "FROM categories ORDER BY cat_name"
     )
