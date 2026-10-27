@@ -1,0 +1,40 @@
+.expense-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.expense-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.expense-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+}
+
+.expense-form__error {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--danger);
+  background: #fef2f2;
+  font-size: var(--font-sm);
+}
+
+@media (max-width: 520px) {
+  .expense-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .expense-form__actions {
+    flex-direction: column-reverse;
+  }
+
+  .expense-form__actions button {
+    width: 100%;
+  }
+}
