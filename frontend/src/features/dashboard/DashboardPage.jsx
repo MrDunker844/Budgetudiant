@@ -10,6 +10,7 @@ import WeeklyChart from "./components/WeeklyChart/WeeklyChart.jsx";
 import RecentTransactions from "./components/RecentTransactions/RecentTransactions.jsx";
 import AddExpenseModal from "./components/AddExpenseModal/AddExpenseModal.jsx";
 import SectionPlaceholder from "./components/SectionPlaceholder/SectionPlaceholder.jsx";
+import ExpensesPage from "../expenses/pages/ExpensesPage.jsx";
 
 import {
   DASHBOARD_CONFIG,
@@ -54,6 +55,8 @@ export default function DashboardPage({
     .map((part) => part?.trim())
     .filter(Boolean)
     .join(" ");
+  const isOverview = activeSection === DASHBOARD_SECTIONS.OVERVIEW;
+  const isExpenses = activeSection === DASHBOARD_SECTIONS.EXPENSES;
 
   function handleOpenExpenseModal() {
     setShowExpenseModal(true);
@@ -83,8 +86,6 @@ export default function DashboardPage({
     handleNavigate(DASHBOARD_SECTIONS.EXPENSES);
   }
 
-  const isOverview = activeSection === DASHBOARD_SECTIONS.OVERVIEW;
-
   return (
     <div className="dashboard-layout">
       <Sidebar
@@ -97,7 +98,7 @@ export default function DashboardPage({
         <Header
           period={DASHBOARD_CONFIG.period}
           workspaceLabel="Mon espace"
-          title="Vue d'ensemble"
+          title={isExpenses ? "Mes dépenses" : "Vue d'ensemble"}
           profileLabel={DASHBOARD_LABELS.profile}
           profileName={profileName}
           profileInitials={getInitials(user?.firstname, user?.lastname)}
@@ -106,12 +107,16 @@ export default function DashboardPage({
         />
 
         <div className="dashboard-content">
-          <DashboardWelcome
-            user={user}
-            onAddExpense={handleOpenExpenseModal}
-          />
+          {isOverview && (
+            <DashboardWelcome
+              user={user}
+              onAddExpense={handleOpenExpenseModal}
+            />
+          )}
 
-          {isOverview ? (
+          {isExpenses ? (
+            <ExpensesPage />
+          ) : isOverview ? (
             <>
               <SummaryCards
                 expensesTotal={expensesTotal}
@@ -138,9 +143,11 @@ export default function DashboardPage({
             <SectionPlaceholder activeSection={activeSection} />
           )}
 
-          <p className="dashboard-demo-notice">
-            {DASHBOARD_LABELS.demoNotice}
-          </p>
+          {isOverview && (
+            <p className="dashboard-demo-notice">
+              {DASHBOARD_LABELS.demoNotice}
+            </p>
+          )}
         </div>
       </main>
 
