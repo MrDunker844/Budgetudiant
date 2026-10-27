@@ -35,7 +35,7 @@ Au premier lancement, Docker télécharge les images, installe les dépendances 
 
 Vérifier :
 
-- http://localhost:8000/api/health → `{ "api": "ok", "database": "ok" }`
+- http://localhost:8000/api/health → `{ "api": "ok", "database": "ok", "expenses": 8, "incomes": 5 }`
 - http://localhost:8000/docs → documentation interactive de l'API (Swagger)
 
 Puis lancer le frontend (hors Docker) :
@@ -50,7 +50,7 @@ npm run dev        # → http://localhost:5173
 
 ## Base de données MySQL
 
-Chaque membre a sa propre base **en local**. Le script `database/schema.sql` est versionné : il crée la base `budget_etudiant`, les tables `categories` et `transactions`, et insère des données de test.
+Chaque membre a sa propre base **en local**. Le script `database/schema.sql` est versionné : il crée la base `budget_etudiant`, les tables `users`, `categories`, `expenses` et `incomes`, et insère des données de test (voir le schéma dans [backend/back.md](backend/back.md)).
 
 ### Identifiants
 
@@ -139,7 +139,7 @@ Le fichier `.github/workflows/ci.yml` lance automatiquement des vérifications *
 
 | Job | Ce qu'il vérifie |
 |---|---|
-| **Backend** | Installe les dépendances, vérifie la syntaxe Python, démarre un vrai MySQL, importe `database/schema.sql`, lance l'API et appelle `/api/health` (doit renvoyer `database: ok` et des transactions) |
+| **Backend** | Installe les dépendances, vérifie la syntaxe Python, démarre un vrai MySQL, importe `database/schema.sql`, lance l'API et appelle `/api/health` (doit renvoyer `database: ok`, des dépenses et des revenus) |
 | **Frontend** | `npm ci`, `npm run lint` (oxlint), `npm run build` (Vite) |
 | **Docker** | Vérifie `docker-compose.yml` et construit l'image de l'API |
 
