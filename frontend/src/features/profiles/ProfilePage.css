@@ -1,0 +1,130 @@
+.profile-page {
+  min-height: 100vh;
+  padding: var(--space-8) var(--space-6);
+  background:
+    radial-gradient(circle at 15% 15%, rgb(11 155 97 / 8%), transparent 28rem),
+    var(--background);
+}
+
+.profile-page__inner {
+  display: grid;
+  width: min(100%, 36rem);
+  gap: var(--space-6);
+  margin: 0 auto;
+}
+
+.profile-page__back {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: var(--font-sm);
+  cursor: pointer;
+}
+
+.profile-page__back:hover {
+  color: var(--primary);
+}
+
+.profile-page__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.profile-page__header h1 {
+  font-size: var(--font-title);
+}
+
+.profile-page__header p {
+  color: var(--text-muted);
+}
+
+.profile-page__avatar {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: var(--font-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.profile-card {
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.profile-card h2 {
+  margin-bottom: var(--space-4);
+  font-size: var(--font-lg);
+}
+
+.profile-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.profile-form label {
+  display: grid;
+  gap: var(--space-2);
+  font-size: var(--font-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.profile-form input {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.profile-form input:focus {
+  border-color: var(--primary);
+  outline: 2px solid var(--primary-light);
+}
+
+.profile-form__hint {
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+.profile-message {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+}
+
+.profile-message--error {
+  background: #fef2f2;
+  color: var(--danger);
+}
+
+.profile-message--success {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+@media (max-width: 36rem) {
+  .profile-page {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .profile-card {
+    padding: var(--space-4);
+  }
+}

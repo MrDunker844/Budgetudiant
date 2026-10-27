@@ -92,10 +92,22 @@
 
 .dashboard-sidebar__profile {
   display: flex;
+  width: 100%;
   min-width: 0;
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.dashboard-sidebar__profile:hover,
+.dashboard-sidebar__profile:focus-visible {
+  background: var(--primary-light);
 }
 
 .dashboard-sidebar__avatar {

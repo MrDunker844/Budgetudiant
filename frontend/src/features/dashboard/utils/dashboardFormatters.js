@@ -34,6 +34,16 @@ export function getInitials(firstname, lastname) {
   );
 }
 
+// "Alice Marie Martin" -> "AM" (premier et dernier mot du nom complet)
+export function getNameInitials(fullName) {
+  const nameParts = (fullName ?? "").trim().split(/\s+/);
+
+  return getInitials(
+    nameParts[0],
+    nameParts.length > 1 ? nameParts[nameParts.length - 1] : ""
+  );
+}
+
 export function getDisplayName(firstname) {
   return firstname?.trim() || "étudiant";
 }

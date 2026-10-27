@@ -26,6 +26,7 @@ export default function Sidebar({
   activeSection,
   onNavigate,
   onLogout,
+  onOpenProfile,
   profileName,
   profileInitials,
 }) {
@@ -64,12 +65,18 @@ export default function Sidebar({
       </nav>
 
       <div className="dashboard-sidebar__bottom">
-        <div className="dashboard-sidebar__profile">
+        <button
+          className="dashboard-sidebar__profile"
+          type="button"
+          onClick={onOpenProfile}
+          aria-label={DASHBOARD_LABELS.profile}
+          title={DASHBOARD_LABELS.profile}
+        >
           <span className="dashboard-sidebar__avatar" aria-hidden="true">
             {profileInitials}
           </span>
           <span className="dashboard-sidebar__profile-name">{profileName}</span>
-        </div>
+        </button>
 
         <button className="dashboard-logout" type="button" onClick={onLogout}>
           <LogOut size={18} aria-hidden="true" />

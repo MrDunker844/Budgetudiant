@@ -141,3 +141,23 @@ def test_summary_filtre_par_mois(client, fake_db):
 
 def test_assertion_toujours_vraie():
     assert True
+
+# ---------- R3 / R11 : page Profil ----------
+def test_r3_revenu_mensuel_peut_rester_vide(client, fake_db):
+    fake_db.responses = [[db_user(1)], [], [], [db_user(1)]]
+    response = client.put("/api/users/1", json={**USER, "us_monthly_budget": None})
+    assert response.status_code == 200
+    assert response.json()["us_monthly_budget"] is None
+
+
+def test_r3_revenu_mensuel_negatif_refuse(client, fake_db):
+    response = client.put("/api/users/1", json={**USER, "us_monthly_budget": -10})
+    assert response.status_code == 422
+
+
+def test_r11_modifier_ses_infos_ne_touche_pas_au_mot_de_passe(client, fake_db):
+    fake_db.responses = [[db_user(1)], [], [], [db_user(1)]]
+    client.put("/api/users/1", json={**USER, "password": "ignored-password-123"})
+    update_query, _ = fake_db.queries[2]
+    assert update_query.startswith("UPDATE users")
+    assert "password" not in update_query

@@ -5,18 +5,21 @@ import "./App.css";
 import { getCurrentUser, logout } from "./services/api.js";
 import AuthPage from "./features/auth/AuthPage.jsx";
 import HomePage from "./features/homepage/HomePage.jsx";
+import ProfilePage from "./features/profiles/ProfilePage.jsx";
 
 const HOME_PATH = "/";
 const LOGIN_PATH = "/login";
 const REGISTER_PATH = "/register";
 const DASHBOARD_PATH = "/dashboard";
 const FIRST_PASSWORD_PATH = "/setup-password";
+const PROFILE_PATH = "/profile";
 const KNOWN_PATHS = [
   HOME_PATH,
   LOGIN_PATH,
   REGISTER_PATH,
   DASHBOARD_PATH,
   FIRST_PASSWORD_PATH,
+  PROFILE_PATH,
 ];
 
 function navigateTo(path) {
@@ -24,7 +27,8 @@ function navigateTo(path) {
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
-function ProtectedDashboard() {
+// Vérifie la session puis affiche la page demandée via renderPage (R9).
+function ProtectedPage({ renderPage }) {
   const [user, setUser] = useState(null);
   const [error, setError] = useState("");
   const [logoutError, setLogoutError] = useState("");
@@ -91,13 +95,12 @@ function ProtectedDashboard() {
     return null;
   }
 
-  return (
-    <DashboardPage
-      user={user}
-      onLogout={handleLogout}
-      logoutError={logoutError}
-    />
-  );
+  return renderPage({
+    user,
+    onUserUpdated: setUser,
+    onLogout: handleLogout,
+    logoutError,
+  });
 }
 
 function App() {
@@ -116,7 +119,32 @@ function App() {
   }, [pathname]);
 
   if (pathname === DASHBOARD_PATH) {
-    return <ProtectedDashboard />;
+    return (
+      <ProtectedPage
+        renderPage={({ user, onLogout, logoutError }) => (
+          <DashboardPage
+            user={user}
+            onLogout={onLogout}
+            onOpenProfile={() => navigateTo(PROFILE_PATH)}
+            logoutError={logoutError}
+          />
+        )}
+      />
+    );
+  }
+
+  if (pathname === PROFILE_PATH) {
+    return (
+      <ProtectedPage
+        renderPage={({ user, onUserUpdated }) => (
+          <ProfilePage
+            user={user}
+            onUserUpdated={onUserUpdated}
+            onBack={() => navigateTo(DASHBOARD_PATH)}
+          />
+        )}
+      />
+    );
   }
 
   if (pathname === LOGIN_PATH || pathname === REGISTER_PATH) {

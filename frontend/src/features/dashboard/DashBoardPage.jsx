@@ -22,7 +22,7 @@ import {
   getExpenseCategories,
   getWeeklyExpenses,
 } from "./utils/dashboardCalculations.js";
-import { getInitials } from "./utils/dashboardFormatters.js";
+import { getNameInitials } from "./utils/dashboardFormatters.js";
 
 import "./DashboardPage.css";
 
@@ -69,6 +69,7 @@ function mapTransactions(expenses, incomes) {
 export default function DashboardPage({
   user,
   onLogout,
+  onOpenProfile,
   logoutError = "",
 }) {
   const month = getCurrentMonth();
@@ -125,11 +126,7 @@ export default function DashboardPage({
   const requestKey = `${user.us_id}:${month}:${refreshVersion}`;
   const isLoading = !error && dashboardData?.requestKey !== requestKey;
   const profileName = user.us_name;
-  const nameParts = profileName.trim().split(/\s+/);
-  const profileInitials = getInitials(
-    nameParts[0],
-    nameParts.length > 1 ? nameParts[nameParts.length - 1] : ""
-  );
+  const profileInitials = getNameInitials(profileName);
   const expenseCategories = useMemo(
     () =>
       dashboardData
@@ -181,6 +178,7 @@ export default function DashboardPage({
         activeSection={activeSection}
         onNavigate={handleNavigate}
         onLogout={onLogout}
+        onOpenProfile={onOpenProfile}
         profileName={profileName}
         profileInitials={profileInitials}
       />
