@@ -1,0 +1,31 @@
+.dashboard-placeholder {
+  display: flex;
+  min-height: 18rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.dashboard-placeholder__icon {
+  display: grid;
+  width: 3.5rem;
+  height: 3.5rem;
+  place-items: center;
+  margin: 0 auto var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.dashboard-placeholder h2 {
+  margin-bottom: var(--space-2);
+  font-size: var(--font-lg);
+}
+
+.dashboard-placeholder p {
+  max-width: 28rem;
+  margin-bottom: 0;
+  color: var(--text-muted);
+}
