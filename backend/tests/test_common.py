@@ -51,3 +51,24 @@ def test_compute_summary_sans_rien():
         "solde": 0,
         "depenses_par_categorie": [],
     }
+
+
+# ---------- R5 / R12 : le revenu mensuel du profil compte dans les revenus du mois ----------
+def test_compute_summary_R5_ajoute_le_revenu_mensuel_sur_un_mois():
+    summary = compute_summary(
+        [{"amount": 100}], [{"amount": 300, "category": None}], 850, per_month=True
+    )
+    assert summary["budget_mensuel"] == 850
+    assert summary["total_revenus"] == 950  # 850 (profil) + 100 (revenus enregistrés)
+    assert summary["solde"] == 650  # le solde suit : 950 - 300
+
+
+def test_compute_summary_R12_revenu_mensuel_vide_n_ajoute_rien():
+    summary = compute_summary([{"amount": 100}], [], None, per_month=True)
+    assert summary["total_revenus"] == 100
+
+
+def test_compute_summary_R12_sans_mois_n_ajoute_pas_le_revenu_mensuel():
+    summary = compute_summary([{"amount": 100}], [], 850)
+    assert summary["budget_mensuel"] == 850
+    assert summary["total_revenus"] == 100
