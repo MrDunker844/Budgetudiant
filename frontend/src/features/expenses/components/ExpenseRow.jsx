@@ -6,7 +6,6 @@ const currency = new Intl.NumberFormat("fr-FR", {
   style: "currency",
   currency: "EUR",
 });
-
 const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
   day: "2-digit",
   month: "short",
