@@ -1,3 +1,4 @@
+import DashboardPage from "./features/dashboard/DashBoardPage.jsx";
 import { useEffect, useState } from "react";
 
 import "./App.css";
