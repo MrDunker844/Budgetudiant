@@ -18,9 +18,13 @@ import "./Sidebar.css";
 const NAVIGATION_ICONS = {
   [DASHBOARD_SECTIONS.OVERVIEW]: LayoutDashboard,
   [DASHBOARD_SECTIONS.EXPENSES]: ReceiptText,
-  [DASHBOARD_SECTIONS.CATEGORIES]: Tags,
-  [DASHBOARD_SECTIONS.STATISTICS]: ChartNoAxesColumn,
 };
+
+const SIDEBAR_NAVIGATION = DASHBOARD_NAVIGATION.filter(
+  ({ id }) =>
+    id !== DASHBOARD_SECTIONS.CATEGORIES &&
+    id !== DASHBOARD_SECTIONS.STATISTICS
+);
 
 export default function Sidebar({
   activeSection,
@@ -42,7 +46,7 @@ export default function Sidebar({
       </p>
 
       <nav className="dashboard-navigation" aria-label="Navigation principale">
-        {DASHBOARD_NAVIGATION.map((item) => {
+        {SIDEBAR_NAVIGATION.map((item) => {
           const Icon = NAVIGATION_ICONS[item.id];
 
           return (
