@@ -18,6 +18,7 @@ CREATE TABLE users (
     us_id          INT AUTO_INCREMENT PRIMARY KEY,
     us_name        VARCHAR(100) NOT NULL,
     us_email       VARCHAR(255) NOT NULL UNIQUE,
+    us_monthly_budget DECIMAL(10, 2) NULL CHECK (us_monthly_budget > 0),
     us_password_hash VARCHAR(255) NULL,
     us_created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

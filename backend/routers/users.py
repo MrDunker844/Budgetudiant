@@ -27,7 +27,9 @@ def check_email_free(cursor, email: str, exclude_id: Optional[int] = None):
         raise HTTPException(status_code=409, detail="E-mail déjà utilisé")
 
 
-def compute_summary(incomes: list[dict], expenses: list[dict]) -> dict:
+def compute_summary(
+    incomes: list[dict], expenses: list[dict], budget_mensuel: Optional[float] = None
+) -> dict:
     """Totaux, solde et dépenses par catégorie à partir des lignes SQL."""
     revenus = sum(float(r["amount"]) for r in incomes)
     depenses = sum(float(r["amount"]) for r in expenses)
@@ -37,6 +39,7 @@ def compute_summary(incomes: list[dict], expenses: list[dict]) -> dict:
         par_categorie[r["category"]] = par_categorie.get(r["category"], 0) + float(r["amount"])
 
     return {
+        "budget_mensuel": budget_mensuel,
         "total_revenus": round(revenus, 2),
         "total_depenses": round(depenses, 2),
         "solde": round(revenus - depenses, 2),
@@ -75,7 +78,8 @@ def create_user(user: UserIn, current_user: User = Depends(get_current_user)):
         cursor = conn.cursor(dictionary=True)
         check_email_free(cursor, user.us_email)
         cursor.execute(
-            "INSERT INTO users (us_name, us_email) VALUES (%s, %s)", (user.us_name, user.us_email)
+            "INSERT INTO users (us_name, us_email, us_monthly_budget) VALUES (%s, %s, %s)",
+            (user.us_name, user.us_email, user.us_monthly_budget),
         )
         conn.commit()
         # On relit la ligne pour renvoyer aussi us_id et us_created_at
@@ -101,8 +105,8 @@ def update_user(
             raise HTTPException(status_code=404, detail=NOT_FOUND)
         check_email_free(cursor, user.us_email, exclude_id=us_id)
         cursor.execute(
-            "UPDATE users SET us_name = %s, us_email = %s WHERE us_id = %s",
-            (user.us_name, user.us_email, us_id),
+            "UPDATE users SET us_name = %s, us_email = %s, us_monthly_budget = %s WHERE us_id = %s",
+            (user.us_name, user.us_email, user.us_monthly_budget, us_id),
         )
         conn.commit()
         row = fetch_user(cursor, us_id)
@@ -137,7 +141,9 @@ def get_summary(
     conn = get_connection()
     try:
         cursor = conn.cursor(dictionary=True)
-        if us_id != current_user.us_id or not row_exists(cursor, "users", "us_id", us_id):
+        cursor.execute("SELECT us_monthly_budget FROM users WHERE us_id = %s", (us_id,))
+        user = cursor.fetchone()
+        if us_id != current_user.us_id or user is None:
             raise HTTPException(status_code=404, detail=NOT_FOUND)
 
         inc_sql, inc_params = month_filter("inc_date", month)
@@ -155,6 +161,6 @@ def get_summary(
         )
         expenses = cursor.fetchall()
         cursor.close()
-        return compute_summary(incomes, expenses)
+        return compute_summary(incomes, expenses, user["us_monthly_budget"])
     finally:
         conn.close()

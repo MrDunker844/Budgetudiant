@@ -118,7 +118,8 @@ def get_current_user(
     try:
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
-            "SELECT us_id, us_name, us_email, us_created_at FROM users WHERE us_id = %s",
+            "SELECT us_id, us_name, us_email, us_monthly_budget, us_created_at "
+            "FROM users WHERE us_id = %s",
             (user_id,),
         )
         user = cursor.fetchone()
