@@ -92,6 +92,7 @@ Si la base ne répond pas, la route répond quand même `200`, avec le message d
 | `us_id` | entier | non | oui | Créé par MySQL |
 | `us_name` | texte | **oui** | oui | 1 à 100 caractères |
 | `us_email` | texte | **oui** | oui | E-mail valide, **unique** |
+| `us_monthly_budget` | nombre | non | oui | Budget mensuel disponible, strictement positif ou `null` |
 | `us_created_at` | date et heure | non | oui | Rempli par MySQL |
 
 ### `GET /api/users/` — lister les utilisateurs
@@ -102,8 +103,8 @@ Triés par nom.
 
 ```json
 [
-  { "us_id": 1, "us_name": "Alice Martin", "us_email": "alice@example.com", "us_created_at": "2026-10-27T10:00:00" },
-  { "us_id": 2, "us_name": "Bob Durand", "us_email": "bob@example.com", "us_created_at": "2026-10-27T10:00:00" }
+  { "us_id": 1, "us_name": "Alice Martin", "us_email": "alice@example.com", "us_monthly_budget": 950.0, "us_created_at": "2026-10-27T10:00:00" },
+  { "us_id": 2, "us_name": "Bob Durand", "us_email": "bob@example.com", "us_monthly_budget": null, "us_created_at": "2026-10-27T10:00:00" }
 ]
 ```
 
@@ -117,7 +118,7 @@ Triés par nom.
 **Corps de la requête**
 
 ```json
-{ "us_name": "Chloé Petit", "us_email": "chloe@example.com" }
+{ "us_name": "Chloé Petit", "us_email": "chloe@example.com", "us_monthly_budget": 850 }
 ```
 
 **Réponse `201`** : l'utilisateur créé, avec `us_id` et `us_created_at`.
@@ -131,10 +132,10 @@ Triés par nom.
 
 ### `PUT /api/users/{us_id}` — modifier un utilisateur
 
-Remplace le nom **et** l'e-mail : il faut envoyer les deux, même si un seul change.
+Remplace le nom, l'e-mail et le budget mensuel : il faut envoyer le nom et l'e-mail, même si un seul change.
 On peut garder son propre e-mail (il n'est en conflit qu'avec les **autres** utilisateurs).
 
-**Corps** : comme pour `POST`.
+**Corps** : comme pour `POST`. Le budget est affiché séparément du solde revenus moins dépenses.
 **Réponse `200`** : l'utilisateur modifié.
 
 **Erreurs** : `404` utilisateur introuvable, `409` e-mail pris par un autre, `422` données invalides.

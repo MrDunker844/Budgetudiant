@@ -9,6 +9,7 @@ class UserIn(BaseModel):
     """Données envoyées pour créer / modifier un utilisateur."""
     us_name: str = Field(min_length=1, max_length=100)
     us_email: EmailStr
+    us_monthly_budget: Optional[float] = Field(default=None, gt=0)
 
 
 class User(UserIn):
@@ -66,6 +67,7 @@ class CategoryTotal(BaseModel):
 
 
 class Summary(BaseModel):
+    budget_mensuel: Optional[float] = None
     total_revenus: float
     total_depenses: float
     solde: float

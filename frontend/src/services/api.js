@@ -14,3 +14,14 @@ export async function request(path, options = {}) {
 export function getHealth() {
   return request("/api/health");
 }
+
+export function getUser(userId) {
+  return request(`/api/users/${userId}`);
+}
+
+export function updateUser(userId, user) {
+  return request(`/api/users/${userId}`, {
+    method: "PUT",
+    body: JSON.stringify(user),
+  });
+}

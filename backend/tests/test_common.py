@@ -31,6 +31,7 @@ def test_compute_summary_totaux_et_solde():
         {"amount": 10, "category": None},
     ]
     summary = compute_summary(incomes, expenses)
+    assert summary["budget_mensuel"] is None
     assert summary["total_revenus"] == 770
     assert summary["total_depenses"] == 460
     assert summary["solde"] == 310
@@ -44,6 +45,7 @@ def test_compute_summary_totaux_et_solde():
 
 def test_compute_summary_sans_rien():
     assert compute_summary([], []) == {
+        "budget_mensuel": None,
         "total_revenus": 0,
         "total_depenses": 0,
         "solde": 0,

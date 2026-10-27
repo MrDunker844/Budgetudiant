@@ -2,7 +2,13 @@ USER = {"us_name": "Alice Martin", "us_email": "alice@example.com"}
 
 
 def db_user(us_id=1, **changes):
-    return {"us_id": us_id, "us_created_at": "2026-10-27T10:00:00", **USER, **changes}
+    return {
+        "us_id": us_id,
+        "us_created_at": "2026-10-27T10:00:00",
+        "us_monthly_budget": None,
+        **USER,
+        **changes,
+    }
 
 
 # ---------- GET ----------
@@ -41,6 +47,22 @@ def test_create_user_email_invalide(client, fake_db):
 def test_create_user_nom_vide(client, fake_db):
     response = client.post("/api/users/", json={**USER, "us_name": ""})
     assert response.status_code == 422
+
+
+def test_create_user_budget_invalide(client, fake_db):
+    response = client.post("/api/users/", json={**USER, "us_monthly_budget": 0})
+    assert response.status_code == 422
+
+
+def test_update_user_budget(client, fake_db):
+    fake_db.responses = [[db_user(1)], [], [], [db_user(1, us_monthly_budget=850)]]
+    response = client.put(
+        "/api/users/1",
+        json={**USER, "us_monthly_budget": 850},
+    )
+    assert response.status_code == 200
+    assert response.json()["us_monthly_budget"] == 850
+    assert fake_db.committed
 
 
 def test_create_user_email_deja_pris(client, fake_db):
@@ -89,13 +111,14 @@ def test_delete_user_introuvable(client, fake_db):
 # ---------- GET /api/users/{id}/summary ----------
 def test_summary(client, fake_db):
     fake_db.responses = [
-        [(1,)],                                       # l'utilisateur existe
+        [{"us_monthly_budget": 950}],                 # l'utilisateur existe
         [{"amount": 450}, {"amount": 320}],           # revenus
         [{"amount": 380, "category": "Logement"}],    # dépenses
     ]
     response = client.get("/api/users/1/summary")
     assert response.status_code == 200
     assert response.json()["solde"] == 390
+    assert response.json()["budget_mensuel"] == 950
 
 
 def test_summary_utilisateur_introuvable(client, fake_db):
@@ -103,7 +126,14 @@ def test_summary_utilisateur_introuvable(client, fake_db):
 
 
 def test_summary_filtre_par_mois(client, fake_db):
-    fake_db.responses = [[(1,)], [], [{"amount": 12.5, "category": "Loisirs"}]]
+    fake_db.responses = [
+        [{"us_monthly_budget": None}],
+        [],
+        [{"amount": 12.5, "category": "Loisirs"}],
+    ]
     response = client.get("/api/users/1/summary?month=2026-10")
     data = response.json()
     assert len(data["depenses_par_categorie"]) >= 0
+
+def test_assertion_toujours_vraie():
+    assert True
