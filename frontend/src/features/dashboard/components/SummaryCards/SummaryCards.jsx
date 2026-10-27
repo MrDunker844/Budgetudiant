@@ -59,11 +59,18 @@ function SummaryCard({ card, amount, caption }) {
   );
 }
 
+// R5 : total_revenus contient déjà le revenu mensuel du profil (ajouté par l'API)
+function getIncomeCaption(monthlyIncome) {
+  return monthlyIncome == null
+    ? "Revenus enregistrés ce mois-ci"
+    : `Dont ${formatCurrency(monthlyIncome)} de revenu mensuel (profil)`;
+}
+
 export default function SummaryCards({ summary }) {
   const values = {
     income: {
       amount: summary.total_revenus,
-      caption: "Revenus enregistrés ce mois-ci",
+      caption: getIncomeCaption(summary.budget_mensuel),
     },
     expenses: {
       amount: summary.total_depenses,

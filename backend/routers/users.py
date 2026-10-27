@@ -28,10 +28,18 @@ def check_email_free(cursor, email: str, exclude_id: Optional[int] = None):
 
 
 def compute_summary(
-    incomes: list[dict], expenses: list[dict], budget_mensuel: Optional[float] = None
+    incomes: list[dict],
+    expenses: list[dict],
+    budget_mensuel: Optional[float] = None,
+    per_month: bool = False,
 ) -> dict:
-    """Totaux, solde et dépenses par catégorie à partir des lignes SQL."""
+    """Totaux, solde et dépenses par catégorie à partir des lignes SQL.
+
+    Sur un mois précis (per_month), le revenu mensuel du profil s'ajoute aux revenus (R5, R12).
+    """
     revenus = sum(float(r["amount"]) for r in incomes)
+    if per_month and budget_mensuel is not None:
+        revenus += float(budget_mensuel)
     depenses = sum(float(r["amount"]) for r in expenses)
 
     par_categorie: dict[Optional[str], float] = {}
@@ -161,6 +169,8 @@ def get_summary(
         )
         expenses = cursor.fetchall()
         cursor.close()
-        return compute_summary(incomes, expenses, user["us_monthly_budget"])
+        return compute_summary(
+            incomes, expenses, user["us_monthly_budget"], per_month=month is not None
+        )
     finally:
         conn.close()

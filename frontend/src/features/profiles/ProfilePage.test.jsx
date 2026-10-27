@@ -196,3 +196,18 @@ describe("ProfilePage — navigation", () => {
     expect(screen.getByText("AM")).toBeInTheDocument();
   });
 });
+
+describe("ProfilePage — style", () => {
+  it("R13 : les formulaires utilisent les composants shared/ui (Card, Input, Button)", () => {
+    const { container } = render(
+      <ProfilePage user={USER} onUserUpdated={vi.fn()} onBack={vi.fn()} />
+    );
+
+    expect(container.querySelectorAll(".ui-card")).toHaveLength(2);
+    expect(screen.getByLabelText("Nom et prénom")).toHaveClass("ui-input");
+    expect(screen.getByLabelText(/Revenu mensuel/)).toHaveClass("ui-input");
+    expect(
+      screen.getByRole("button", { name: "Enregistrer mes informations" })
+    ).toHaveClass("ui-button");
+  });
+});

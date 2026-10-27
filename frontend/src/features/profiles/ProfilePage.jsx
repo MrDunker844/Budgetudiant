@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 
 import Button from "../../shared/ui/Button/Button.jsx";
+import Card from "../../shared/ui/Card/Card.jsx";
+import FormField from "../../shared/ui/FormField/FormField.jsx";
+import Input from "../../shared/ui/Input/Input.jsx";
 import { changePassword, updateUser } from "../../services/api.js";
 import { getNameInitials } from "../dashboard/utils/dashboardFormatters.js";
 import "./ProfilePage.css";
@@ -9,8 +12,29 @@ import "./ProfilePage.css";
 const MIN_PASSWORD_LENGTH = 12;
 const MAX_PASSWORD_LENGTH = 128;
 
+// Message de succès ou d'erreur affiché sous un formulaire
+function FormMessage({ error, success }) {
+  if (error) {
+    return (
+      <p className="profile-message profile-message--error" role="alert">
+        {error}
+      </p>
+    );
+  }
+  if (success) {
+    return (
+      <p className="profile-message profile-message--success" role="status">
+        {success}
+      </p>
+    );
+  }
+  return null;
+}
+
 // Formulaire 1 : nom, e-mail et revenu mensuel (R2, R3, R11)
 function ProfileInfoForm({ user, onUserUpdated }) {
+  // useId fabrique un identifiant unique pour relier chaque <label> à son champ
+  const fieldId = useId();
   const [name, setName] = useState(user.us_name);
   const [email, setEmail] = useState(user.us_email);
   // Un <input type="number"> manipule du texte : "" veut dire « pas de revenu défini »
@@ -49,34 +73,40 @@ function ProfileInfoForm({ user, onUserUpdated }) {
   }
 
   return (
-    <section className="profile-card" aria-labelledby="profile-info-title">
-      <h2 id="profile-info-title">Mes informations</h2>
+    <Card aria-labelledby={`${fieldId}-title`}>
+      <h2 id={`${fieldId}-title`} className="profile-card__title">
+        Mes informations
+      </h2>
       <form className="profile-form" onSubmit={handleSubmit}>
-        <label>
-          Nom et prénom
-          <input
+        <FormField label="Nom et prénom" htmlFor={`${fieldId}-name`}>
+          <Input
+            id={`${fieldId}-name`}
             autoComplete="name"
             maxLength={100}
             required
             value={name}
             onChange={(event) => setName(event.target.value)}
           />
-        </label>
+        </FormField>
 
-        <label>
-          Adresse e-mail
-          <input
+        <FormField label="Adresse e-mail" htmlFor={`${fieldId}-email`}>
+          <Input
+            id={`${fieldId}-email`}
             autoComplete="email"
             type="email"
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
-        </label>
+        </FormField>
 
-        <label>
-          Revenu mensuel (€)
-          <input
+        <FormField
+          label="Revenu mensuel (€)"
+          htmlFor={`${fieldId}-income`}
+          hint="L’argent dont tu disposes chaque mois. Il s’ajoute aux revenus du mois sur le tableau de bord. Laisse vide si tu ne veux pas le renseigner."
+        >
+          <Input
+            id={`${fieldId}-income`}
             type="number"
             inputMode="decimal"
             min="0.01"
@@ -85,32 +115,21 @@ function ProfileInfoForm({ user, onUserUpdated }) {
             value={income}
             onChange={(event) => setIncome(event.target.value)}
           />
-          <span className="profile-form__hint">
-            L’argent dont tu disposes chaque mois. Laisse vide si tu ne veux pas le renseigner.
-          </span>
-        </label>
+        </FormField>
 
-        {error && (
-          <p className="profile-message profile-message--error" role="alert">
-            {error}
-          </p>
-        )}
-        {success && (
-          <p className="profile-message profile-message--success" role="status">
-            {success}
-          </p>
-        )}
+        <FormMessage error={error} success={success} />
 
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" className="profile-form__submit" disabled={isSubmitting}>
           {isSubmitting ? "Patiente…" : "Enregistrer mes informations"}
         </Button>
       </form>
-    </section>
+    </Card>
   );
 }
 
 // Formulaire 2 : mot de passe (R8, R11)
 function PasswordForm() {
+  const fieldId = useId();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -152,12 +171,14 @@ function PasswordForm() {
   }
 
   return (
-    <section className="profile-card" aria-labelledby="profile-password-title">
-      <h2 id="profile-password-title">Changer mon mot de passe</h2>
+    <Card aria-labelledby={`${fieldId}-title`}>
+      <h2 id={`${fieldId}-title`} className="profile-card__title">
+        Changer mon mot de passe
+      </h2>
       <form className="profile-form" onSubmit={handleSubmit}>
-        <label>
-          Ancien mot de passe
-          <input
+        <FormField label="Ancien mot de passe" htmlFor={`${fieldId}-current`}>
+          <Input
+            id={`${fieldId}-current`}
             autoComplete="current-password"
             type="password"
             required
@@ -165,11 +186,15 @@ function PasswordForm() {
             value={currentPassword}
             onChange={(event) => setCurrentPassword(event.target.value)}
           />
-        </label>
+        </FormField>
 
-        <label>
-          Nouveau mot de passe
-          <input
+        <FormField
+          label="Nouveau mot de passe"
+          htmlFor={`${fieldId}-new`}
+          hint={`Au moins ${MIN_PASSWORD_LENGTH} caractères.`}
+        >
+          <Input
+            id={`${fieldId}-new`}
             autoComplete="new-password"
             type="password"
             required
@@ -178,14 +203,11 @@ function PasswordForm() {
             value={newPassword}
             onChange={(event) => setNewPassword(event.target.value)}
           />
-          <span className="profile-form__hint">
-            Au moins {MIN_PASSWORD_LENGTH} caractères.
-          </span>
-        </label>
+        </FormField>
 
-        <label>
-          Confirmer le nouveau mot de passe
-          <input
+        <FormField label="Confirmer le nouveau mot de passe" htmlFor={`${fieldId}-confirm`}>
+          <Input
+            id={`${fieldId}-confirm`}
             autoComplete="new-password"
             type="password"
             required
@@ -193,24 +215,15 @@ function PasswordForm() {
             value={confirmation}
             onChange={(event) => setConfirmation(event.target.value)}
           />
-        </label>
+        </FormField>
 
-        {error && (
-          <p className="profile-message profile-message--error" role="alert">
-            {error}
-          </p>
-        )}
-        {success && (
-          <p className="profile-message profile-message--success" role="status">
-            {success}
-          </p>
-        )}
+        <FormMessage error={error} success={success} />
 
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" className="profile-form__submit" disabled={isSubmitting}>
           {isSubmitting ? "Patiente…" : "Changer mon mot de passe"}
         </Button>
       </form>
-    </section>
+    </Card>
   );
 }
 
@@ -218,10 +231,15 @@ export default function ProfilePage({ user, onUserUpdated, onBack }) {
   return (
     <main className="profile-page">
       <div className="profile-page__inner">
-        <button className="profile-page__back" type="button" onClick={onBack}>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="profile-page__back"
+          onClick={onBack}
+        >
           <ArrowLeft size={18} aria-hidden="true" />
           Retour au tableau de bord
-        </button>
+        </Button>
 
         <header className="profile-page__header">
           <span className="profile-page__avatar" aria-hidden="true">

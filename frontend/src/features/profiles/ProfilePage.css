@@ -1,8 +1,15 @@
+/* Les cartes, champs et boutons viennent de shared/ui (Card, FormField, Input, Button) :
+   ici, seulement la mise en page propre au profil (R13). */
+
 .profile-page {
   min-height: 100vh;
-  padding: var(--space-8) var(--space-6);
+  padding: var(--page-padding) var(--space-6);
   background:
-    radial-gradient(circle at 15% 15%, rgb(11 155 97 / 8%), transparent 28rem),
+    radial-gradient(
+      circle at 15% 15%,
+      var(--primary-light),
+      transparent 28rem
+    ),
     var(--background);
 }
 
@@ -14,20 +21,11 @@
 }
 
 .profile-page__back {
-  display: inline-flex;
   width: fit-content;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
   color: var(--text-muted);
-  font-size: var(--font-sm);
-  cursor: pointer;
 }
 
-.profile-page__back:hover {
+.profile-page__back:hover:not(:disabled) {
   color: var(--primary);
 }
 
@@ -38,10 +36,12 @@
 }
 
 .profile-page__header h1 {
+  margin-bottom: var(--space-1);
   font-size: var(--font-title);
 }
 
 .profile-page__header p {
+  margin-bottom: 0;
   color: var(--text-muted);
 }
 
@@ -58,15 +58,7 @@
   font-weight: var(--font-weight-semibold);
 }
 
-.profile-card {
-  padding: var(--space-6);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface);
-  box-shadow: var(--shadow-card);
-}
-
-.profile-card h2 {
+.profile-card__title {
   margin-bottom: var(--space-4);
   font-size: var(--font-lg);
 }
@@ -76,41 +68,20 @@
   gap: var(--space-4);
 }
 
-.profile-form label {
-  display: grid;
-  gap: var(--space-2);
-  font-size: var(--font-sm);
-  font-weight: var(--font-weight-semibold);
-}
-
-.profile-form input {
-  width: 100%;
-  min-height: 2.75rem;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--text);
-}
-
-.profile-form input:focus {
-  border-color: var(--primary);
-  outline: 2px solid var(--primary-light);
-}
-
-.profile-form__hint {
-  color: var(--text-muted);
-  font-weight: normal;
+.profile-form__submit {
+  justify-self: start;
 }
 
 .profile-message {
+  margin: 0;
   padding: var(--space-3);
   border-radius: var(--radius-md);
   font-size: var(--font-sm);
 }
 
+/* color-mix crée un fond très clair à partir de la couleur --danger */
 .profile-message--error {
-  background: #fef2f2;
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
   color: var(--danger);
 }
 
@@ -124,7 +95,11 @@
     padding: var(--space-6) var(--space-4);
   }
 
-  .profile-card {
+  .profile-page .ui-card {
     padding: var(--space-4);
+  }
+
+  .profile-form__submit {
+    justify-self: stretch;
   }
 }

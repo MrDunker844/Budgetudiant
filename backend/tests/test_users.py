@@ -139,6 +139,28 @@ def test_summary_filtre_par_mois(client, fake_db):
     data = response.json()
     assert len(data["depenses_par_categorie"]) >= 0
 
+
+def test_summary_R5_mois_inclut_le_revenu_mensuel(client, fake_db):
+    fake_db.responses = [
+        [{"us_monthly_budget": 850}],
+        [{"amount": 100}],
+        [{"amount": 300, "category": "Logement"}],
+    ]
+    data = client.get("/api/users/1/summary?month=2026-10").json()
+    assert data["budget_mensuel"] == 850
+    assert data["total_revenus"] == 950
+    assert data["solde"] == 650
+
+
+def test_summary_R12_sans_mois_n_inclut_pas_le_revenu_mensuel(client, fake_db):
+    fake_db.responses = [
+        [{"us_monthly_budget": 850}],
+        [{"amount": 100}],
+        [],
+    ]
+    data = client.get("/api/users/1/summary").json()
+    assert data["total_revenus"] == 100
+
 def test_assertion_toujours_vraie():
     assert True
 
