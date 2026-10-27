@@ -13,16 +13,24 @@ import Card from "../../../../shared/ui/Card/Card.jsx";
 import { DASHBOARD_LABELS } from "../../dashboard.js";
 import { getPercentage } from "../../utils/dashboardCalculations.js";
 import { formatCurrency } from "../../utils/dashboardFormatters.js";
-import SpendingProgress from "../SpendingProgress/SpendingProgress.jsx";
 import "./ExpenseCategories.css";
 
 const CATEGORY_ICONS = {
-  housing: House,
-  food: Utensils,
+  logement: House,
+  alimentation: Utensils,
   transport: Bus,
-  leisure: PartyPopper,
-  other: ShoppingBag,
+  loisirs: PartyPopper,
+  etudes: ShoppingBag,
+  sante: Tags,
 };
+
+function getCategoryIcon(label) {
+  const key = label
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase("fr-FR");
+  return CATEGORY_ICONS[key] ?? Tags;
+}
 
 export default function ExpenseCategories({ categories, expensesTotal }) {
   const gradient = useMemo(() => {
@@ -55,8 +63,6 @@ export default function ExpenseCategories({ categories, expensesTotal }) {
           </span>
         </div>
 
-        <SpendingProgress expensesTotal={expensesTotal} />
-
         {categories.length === 0 ? (
           <div className="dashboard-category-empty">
             <Tags size={28} aria-hidden="true" />
@@ -78,7 +84,7 @@ export default function ExpenseCategories({ categories, expensesTotal }) {
 
             <div className="dashboard-category-legend">
               {categories.map((category) => {
-                const Icon = CATEGORY_ICONS[category.id] ?? Tags;
+                const Icon = getCategoryIcon(category.label);
 
                 return (
                   <div

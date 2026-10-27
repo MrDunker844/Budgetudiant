@@ -2,24 +2,20 @@
 import {
   Euro,
   TrendingUp,
-  Wallet,
-  PiggyBank,
+  Scale,
 } from "lucide-react";
 
 import Card from "../../../../shared/ui/Card/Card.jsx";
 
-import {
-  DASHBOARD_CONFIG,
-  DASHBOARD_LABELS,
-} from "../../dashboard.js";
+import { DASHBOARD_LABELS } from "../../dashboard.js";
 
 import { formatCurrency } from "../../utils/dashboardFormatters.js";
 import "./SummaryCards.css";
 
 const SUMMARY_CARDS = [
   {
-    id: "budget",
-    label: DASHBOARD_LABELS.monthlyBudget,
+    id: "income",
+    label: DASHBOARD_LABELS.monthlyIncome,
     icon: Euro,
     tone: "green",
   },
@@ -30,20 +26,14 @@ const SUMMARY_CARDS = [
     tone: "purple",
   },
   {
-    id: "available",
-    label: DASHBOARD_LABELS.availableBudget,
-    icon: Wallet,
+    id: "balance",
+    label: DASHBOARD_LABELS.balance,
+    icon: Scale,
     tone: "blue",
-  },
-  {
-    id: "savings",
-    label: DASHBOARD_LABELS.savingsGoal,
-    icon: PiggyBank,
-    tone: "orange",
   },
 ];
 
-function SummaryCard({ card, amount, caption, progress }) {
+function SummaryCard({ card, amount, caption }) {
   const Icon = card.icon;
 
   return (
@@ -64,46 +54,24 @@ function SummaryCard({ card, amount, caption, progress }) {
 
         <span className="dashboard-summary-card__caption">{caption}</span>
 
-        {progress !== undefined && (
-          <div className="dashboard-summary-card__progress">
-            <div
-              className="dashboard-progress-track"
-              role="progressbar"
-              aria-label="Progression de l'objectif d'épargne"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={progress}
-            >
-              <span style={{ width: `${progress}%` }} />
-            </div>
-          </div>
-        )}
       </article>
     </Card>
   );
 }
 
-export default function SummaryCards({ expensesTotal, remaining }) {
+export default function SummaryCards({ summary }) {
   const values = {
-    budget: {
-      amount: DASHBOARD_CONFIG.monthlyBudget,
-      caption: "Budget prévu pour ce mois",
+    income: {
+      amount: summary.total_revenus,
+      caption: "Revenus enregistrés ce mois-ci",
     },
     expenses: {
-      amount: expensesTotal,
-      caption: "Dépenses enregistrées",
+      amount: summary.total_depenses,
+      caption: "Dépenses enregistrées ce mois-ci",
     },
-    available: {
-      amount: remaining,
-      caption:
-        remaining < 0
-          ? "Budget mensuel dépassé"
-          : "Encore disponible ce mois-ci",
-    },
-    savings: {
-      amount: DASHBOARD_CONFIG.savingsGoal,
-      caption: `${DASHBOARD_CONFIG.savingsProgress} % de ton objectif atteint`,
-      progress: DASHBOARD_CONFIG.savingsProgress,
+    balance: {
+      amount: summary.solde,
+      caption: "Revenus moins dépenses",
     },
   };
 

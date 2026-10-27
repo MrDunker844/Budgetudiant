@@ -43,6 +43,25 @@ def test_list_filtres_parametres(client, fake_db, table, px):
 
 
 @MONEY
+def test_list_cannot_read_other_users(client, fake_db, table, px):
+    response = client.get(f"/api/{table}/?user_id=2")
+
+    assert response.status_code == 404
+    assert fake_db.queries == []
+
+
+@MONEY
+def test_create_cannot_assign_other_user(client, fake_db, table, px):
+    response = client.post(
+        f"/api/{table}/",
+        json=payload(px, user_id=2),
+    )
+
+    assert response.status_code == 404
+    assert fake_db.queries == []
+
+
+@MONEY
 def test_list_mois_invalide(client, fake_db, table, px):
     assert client.get(f"/api/{table}/?month=2026-13").status_code == 422
 

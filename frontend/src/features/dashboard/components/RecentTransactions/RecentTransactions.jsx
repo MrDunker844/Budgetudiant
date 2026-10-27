@@ -4,31 +4,40 @@ import {
   ChevronRight,
   Tags,
   House,
+  BookOpen,
   Utensils,
   Bus,
   PartyPopper,
-  ShoppingBag,
 } from "lucide-react";
 
 import Card from "../../../../shared/ui/Card/Card.jsx";
-import {
-  DASHBOARD_CONFIG,
-  DASHBOARD_LABELS,
-  EXPENSE_CATEGORIES,
-} from "../../dashboard.js";
+import { DASHBOARD_CONFIG, DASHBOARD_LABELS } from "../../dashboard.js";
 import { formatCurrency, formatDate } from "../../utils/dashboardFormatters.js";
 import "./RecentTransactions.css";
 
 const CATEGORY_ICONS = {
-  housing: House,
-  food: Utensils,
+  alimentation: Utensils,
+  logement: House,
   transport: Bus,
-  leisure: PartyPopper,
-  other: ShoppingBag,
+  loisirs: PartyPopper,
+  etudes: BookOpen,
+  santé: Tags,
+  sante: Tags,
+  "job étudiant": Tags,
+  aides: Tags,
 };
+
+function getCategoryIcon(categoryName) {
+  const key = categoryName
+    ?.normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase(DASHBOARD_CONFIG.locale);
+  return CATEGORY_ICONS[key] ?? Tags;
+}
 
 export default function RecentTransactions({
   transactions,
+  categories,
   search,
   onSearchChange,
   onViewAll,
@@ -36,18 +45,18 @@ export default function RecentTransactions({
   const query = search.trim().toLocaleLowerCase(DASHBOARD_CONFIG.locale);
 
   const filteredTransactions = transactions.filter((transaction) => {
-    const category = EXPENSE_CATEGORIES.find(
-      (item) => item.id === transaction.categoryId
+    const category = categories.find(
+      (item) => item.cat_id === transaction.categoryId
     );
 
     return (
       transaction.label.toLocaleLowerCase(DASHBOARD_CONFIG.locale).includes(query) ||
-      category?.label.toLocaleLowerCase(DASHBOARD_CONFIG.locale).includes(query)
+      category?.cat_name.toLocaleLowerCase(DASHBOARD_CONFIG.locale).includes(query)
     );
   });
 
   return (
-    <Card>
+    <Card className="dashboard-recent-transactions">
       <section className="dashboard-transactions">
         <div className="dashboard-card-heading dashboard-card-heading--transactions">
           <div>
@@ -84,28 +93,38 @@ export default function RecentTransactions({
         ) : (
           <div className="dashboard-transaction-list">
             {filteredTransactions.map((transaction) => {
-              const category = EXPENSE_CATEGORIES.find(
-                (item) => item.id === transaction.categoryId
+              const category = categories.find(
+                (item) => item.cat_id === transaction.categoryId
               );
-              const Icon = CATEGORY_ICONS[transaction.categoryId] ?? Tags;
+              const Icon = getCategoryIcon(category?.cat_name);
 
               return (
                 <article
                   className="dashboard-transaction"
                   key={transaction.id}
                 >
-                  <span className="dashboard-transaction__icon">
+                  <span
+                    className="dashboard-transaction__icon"
+                    style={
+                      category
+                        ? { color: category.cat_color }
+                        : undefined
+                    }
+                  >
                     <Icon size={19} aria-hidden="true" />
                   </span>
 
                   <div className="dashboard-transaction__details">
                     <strong>{transaction.label}</strong>
                     <span>
-                      {category?.label ?? "Autres"} · {formatDate(transaction.date)}
+                      {category?.cat_name ?? "Sans catégorie"} ·{" "}
+                      {formatDate(transaction.date)}
                     </span>
                   </div>
 
-                  <strong className="dashboard-transaction__amount">
+                  <strong
+                    className={`dashboard-transaction__amount dashboard-transaction__amount--${transaction.type}`}
+                  >
                     {transaction.type === "income" ? "+" : "−"}
                     {formatCurrency(transaction.amount)}
                   </strong>

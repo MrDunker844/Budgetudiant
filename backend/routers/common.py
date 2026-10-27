@@ -1,9 +1,11 @@
 from datetime import date, datetime
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
+from auth import get_current_user
 from database import get_connection
+from models import User
 
 MONTH_PATTERN = r"^\d{4}-(0[1-9]|1[0-2])$"  # ex. 2026-10
 
@@ -49,20 +51,22 @@ def make_money_router(table: str, px: str, model_in, model_out, tag: str, label:
     columns = ["user_id", "categorie_id", f"{px}_title", f"{px}_amount", date_col, f"{px}_description"]
     not_found = f"{label} introuvable"
 
-    def fetch(cursor, row_id: int):
-        cursor.execute(f"SELECT * FROM {table} WHERE {id_col} = %s", (row_id,))
+    def fetch(cursor, row_id: int, user_id: int):
+        cursor.execute(
+            f"SELECT * FROM {table} WHERE {id_col} = %s AND user_id = %s",
+            (row_id, user_id),
+        )
         return cursor.fetchone()
 
     @router.get("/", response_model=list[model_out], summary=f"Lister les {tag.lower()}")
     def list_rows(
         user_id: Optional[int] = None,
         month: Optional[str] = Query(default=None, pattern=MONTH_PATTERN),
+        current_user: User = Depends(get_current_user),
     ):
-        # "1 = 1" permet d'ajouter chaque filtre avec " AND ..." sans cas particulier
-        where, params = " WHERE 1 = 1", []
-        if user_id is not None:
-            where += " AND user_id = %s"
-            params.append(user_id)
+        if user_id is not None and user_id != current_user.us_id:
+            raise HTTPException(status_code=404, detail="Ressource introuvable")
+        where, params = " WHERE user_id = %s", [current_user.us_id]
         month_sql, month_params = month_filter(date_col, month)
         conn = get_connection()
         try:
@@ -78,11 +82,11 @@ def make_money_router(table: str, px: str, model_in, model_out, tag: str, label:
             conn.close()
 
     @router.get("/{row_id}", response_model=model_out, summary=f"Lire un(e) {label.lower()}")
-    def get_row(row_id: int):
+    def get_row(row_id: int, current_user: User = Depends(get_current_user)):
         conn = get_connection()
         try:
             cursor = conn.cursor(dictionary=True)
-            row = fetch(cursor, row_id)
+            row = fetch(cursor, row_id, current_user.us_id)
             cursor.close()
             if row is None:
                 raise HTTPException(status_code=404, detail=not_found)
@@ -91,7 +95,12 @@ def make_money_router(table: str, px: str, model_in, model_out, tag: str, label:
             conn.close()
 
     @router.post("/", response_model=model_out, status_code=201, summary=f"Créer un(e) {label.lower()}")
-    def create_row(data: model_in):
+    def create_row(
+        data: model_in,
+        current_user: User = Depends(get_current_user),
+    ):
+        if data.user_id != current_user.us_id:
+            raise HTTPException(status_code=404, detail="Ressource introuvable")
         values = data.model_dump()
         conn = get_connection()
         try:
@@ -104,20 +113,26 @@ def make_money_router(table: str, px: str, model_in, model_out, tag: str, label:
             )
             conn.commit()
             # On relit la ligne pour renvoyer aussi l'id et la date de création
-            row = fetch(cursor, cursor.lastrowid)
+            row = fetch(cursor, cursor.lastrowid, current_user.us_id)
             cursor.close()
             return row
         finally:
             conn.close()
 
     @router.put("/{row_id}", response_model=model_out, summary=f"Modifier un(e) {label.lower()}")
-    def update_row(row_id: int, data: model_in):
+    def update_row(
+        row_id: int,
+        data: model_in,
+        current_user: User = Depends(get_current_user),
+    ):
+        if data.user_id != current_user.us_id:
+            raise HTTPException(status_code=404, detail="Ressource introuvable")
         values = data.model_dump()
         conn = get_connection()
         try:
             cursor = conn.cursor(dictionary=True)
             # On vérifie l'existence avant : MySQL renvoie rowcount = 0 si les valeurs n'ont pas changé
-            if fetch(cursor, row_id) is None:
+            if fetch(cursor, row_id, current_user.us_id) is None:
                 raise HTTPException(status_code=404, detail=not_found)
             check_user_and_category(cursor, data.user_id, data.categorie_id)
             assignments = ", ".join(f"{c} = %s" for c in columns)
@@ -126,18 +141,22 @@ def make_money_router(table: str, px: str, model_in, model_out, tag: str, label:
                 [values[c] for c in columns] + [row_id],
             )
             conn.commit()
-            row = fetch(cursor, row_id)
+            row = fetch(cursor, row_id, current_user.us_id)
             cursor.close()
             return row
         finally:
             conn.close()
 
     @router.delete("/{row_id}", status_code=204, summary=f"Supprimer un(e) {label.lower()}")
-    def delete_row(row_id: int):
+    def delete_row(row_id: int, current_user: User = Depends(get_current_user)):
         conn = get_connection()
         try:
             cursor = conn.cursor()
-            if not row_exists(cursor, table, id_col, row_id):
+            cursor.execute(
+                f"SELECT {id_col} FROM {table} WHERE {id_col} = %s AND user_id = %s",
+                (row_id, current_user.us_id),
+            )
+            if cursor.fetchone() is None:
                 raise HTTPException(status_code=404, detail=not_found)
             cursor.execute(f"DELETE FROM {table} WHERE {id_col} = %s", (row_id,))
             conn.commit()

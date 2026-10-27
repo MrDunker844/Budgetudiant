@@ -5,7 +5,6 @@ import {
   Tags,
   ChartNoAxesColumn,
   LogOut,
-  CircleHelp,
 } from "lucide-react";
 
 import {
@@ -23,7 +22,13 @@ const NAVIGATION_ICONS = {
   [DASHBOARD_SECTIONS.STATISTICS]: ChartNoAxesColumn,
 };
 
-export default function Sidebar({ activeSection, onNavigate, onLogout }) {
+export default function Sidebar({
+  activeSection,
+  onNavigate,
+  onLogout,
+  profileName,
+  profileInitials,
+}) {
   return (
     <aside className="dashboard-sidebar">
       <a className="dashboard-brand" href="/" aria-label={DASHBOARD_CONFIG.brand}>
@@ -59,12 +64,11 @@ export default function Sidebar({ activeSection, onNavigate, onLogout }) {
       </nav>
 
       <div className="dashboard-sidebar__bottom">
-        <div className="dashboard-help">
-          <span className="dashboard-help__icon">
-            <CircleHelp size={20} aria-hidden="true" />
+        <div className="dashboard-sidebar__profile">
+          <span className="dashboard-sidebar__avatar" aria-hidden="true">
+            {profileInitials}
           </span>
-          <strong>{DASHBOARD_LABELS.helpTitle}</strong>
-          <p>{DASHBOARD_LABELS.helpDescription}</p>
+          <span className="dashboard-sidebar__profile-name">{profileName}</span>
         </div>
 
         <button className="dashboard-logout" type="button" onClick={onLogout}>

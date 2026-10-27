@@ -3,25 +3,21 @@ import { useState } from "react";
 import { Check, X } from "lucide-react";
 
 import Button from "../../../../shared/ui/Button/Button.jsx";
-import {
-  EXPENSE_CATEGORIES,
-  EXPENSE_FORM,
-} from "../../dashboard.js";
+import { EXPENSE_FORM } from "../../dashboard.js";
 import "./AddExpenseModal.css";
 
 const MIN_EXPENSE_AMOUNT = 0.01;
 const AMOUNT_DECIMAL_PLACES = 2;
-const MAX_EXPENSE_LABEL_LENGTH = 80;
+const MAX_EXPENSE_LABEL_LENGTH = 100;
 
-export default function AddExpenseModal({ onClose, onAdd }) {
+export default function AddExpenseModal({ categories, onClose, onAdd }) {
   const [label, setLabel] = useState("");
   const [amount, setAmount] = useState("");
-  const [categoryId, setCategoryId] = useState(
-    EXPENSE_CATEGORIES[0]?.id ?? "other"
-  );
+  const [categoryId, setCategoryId] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const parsedAmount = Number(amount.replace(",", "."));
@@ -39,14 +35,29 @@ export default function AddExpenseModal({ onClose, onAdd }) {
       return;
     }
 
-    onAdd({
-      id: crypto.randomUUID(),
-      label: label.trim(),
-      categoryId,
-      date: new Date().toISOString().slice(0, 10),
-      amount: Number(parsedAmount.toFixed(AMOUNT_DECIMAL_PLACES)),
-      type: "expense",
-    });
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const today = new Date();
+      const date = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0"),
+      ].join("-");
+
+      await onAdd({
+        categorie_id: categoryId ? Number(categoryId) : null,
+        ex_title: label.trim(),
+        ex_amount: Number(parsedAmount.toFixed(AMOUNT_DECIMAL_PLACES)),
+        ex_date: date,
+        ex_description: null,
+      });
+    } catch (submissionError) {
+      setError(submissionError.message || "Impossible d'enregistrer la dépense.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -87,6 +98,7 @@ export default function AddExpenseModal({ onClose, onAdd }) {
               autoFocus
               required
               maxLength={MAX_EXPENSE_LABEL_LENGTH}
+              disabled={isSubmitting}
               value={label}
               onChange={(event) => {
                 setLabel(event.target.value);
@@ -104,6 +116,7 @@ export default function AddExpenseModal({ onClose, onAdd }) {
               min={MIN_EXPENSE_AMOUNT}
               step={MIN_EXPENSE_AMOUNT}
               value={amount}
+              disabled={isSubmitting}
               onChange={(event) => {
                 setAmount(event.target.value);
                 setError("");
@@ -117,10 +130,12 @@ export default function AddExpenseModal({ onClose, onAdd }) {
             <select
               value={categoryId}
               onChange={(event) => setCategoryId(event.target.value)}
+              disabled={isSubmitting}
             >
-              {EXPENSE_CATEGORIES.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.label}
+              <option value="">Sans catégorie</option>
+              {categories.map((category) => (
+                <option key={category.cat_id} value={category.cat_id}>
+                  {category.cat_name}
                 </option>
               ))}
             </select>
@@ -133,12 +148,17 @@ export default function AddExpenseModal({ onClose, onAdd }) {
           )}
 
           <div className="dashboard-expense-form__actions">
-            <Button type="button" variant="secondary" onClick={onClose}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               {EXPENSE_FORM.cancel}
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={isSubmitting}>
               <Check size={17} aria-hidden="true" />
-              {EXPENSE_FORM.submit}
+              {isSubmitting ? "Enregistrement…" : EXPENSE_FORM.submit}
             </Button>
           </div>
         </form>

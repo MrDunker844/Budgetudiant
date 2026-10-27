@@ -13,7 +13,7 @@ function formatCurrency(amount) {
   return CURRENCY_FORMATTER.format(amount);
 }
 
-function Header({ onLogin, onDashboard }) {
+function Header({ onLogin, onRegister }) {
   return (
     <header className="homepage-header">
       <a className="homepage-brand" href="#accueil" aria-label="BudgÉtudiant, accueil">
@@ -188,10 +188,14 @@ function Approach() {
   );
 }
 
-export default function HomePage({ onLogin = () => {}, onDashboard = () => {} }) {
+export default function HomePage({
+  onLogin = () => {},
+  onRegister = () => {},
+  onDashboard = () => {},
+}) {
   return (
     <div className="homepage">
-      <Header onLogin={onLogin} onDashboard={onDashboard} />
+      <Header onLogin={onLogin} onRegister={onRegister} />
 
       <main>
         <Hero onDashboard={onDashboard} />

@@ -1,15 +1,25 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import get_connection
-from routers import expenses, incomes, users
+from routers import auth, categories, expenses, incomes, users
 
 app = FastAPI(title="Budget Étudiant API")
 
-# Autorise le front React (Vite tourne sur le port 5173)
+frontend_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "FRONTEND_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=frontend_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -18,7 +28,8 @@ app.add_middleware(
 app.include_router(users.router)
 app.include_router(expenses.router)
 app.include_router(incomes.router)
-# À venir : app.include_router(categories.router)
+app.include_router(categories.router)
+app.include_router(auth.router)
 
 
 @app.get("/api/health")

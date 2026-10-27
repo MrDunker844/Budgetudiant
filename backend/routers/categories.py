@@ -15,6 +15,8 @@ def list_categories():
             "SELECT cat_id, cat_name, cat_color, cat_description, cat_created_at "
             "FROM categories ORDER BY cat_name"
         )
-        return cursor.fetchall()
+        rows = cursor.fetchall()
+        cursor.close()
+        return rows
     finally:
         conn.close()
